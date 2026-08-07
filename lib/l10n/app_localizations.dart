@@ -20,7 +20,7 @@ class AppLocalizations {
   // Translations
   static final Map<String, Map<String, String>> _localizedValues = {
     'he': {
-      'app_title': 'תורת ארץ ישראל',
+      'app_title': "My YT Music",
       'series': 'סדרות',
       'all_series': 'כל הסדרות',
       'new_lessons': 'שיעורים חדשים',
@@ -45,7 +45,7 @@ class AppLocalizations {
       'type_to_search': 'הקלד לפחות 2 תווים לחיפוש',
       'results': 'תוצאות',
       'no_results': 'לא נמצאו תוצאות',
-      'select_source': 'תורת ארץ ישראל',
+      'select_source': 'My YT Channels',
       'coming_soon': 'בקרוב',
       'more_apps_from_developer': 'עוד אפליקציות ממפתח זה',
       'playback_speed': 'מהירות ניגון:',
@@ -76,7 +76,7 @@ class AppLocalizations {
       'type_to_search': 'Type at least 2 characters to search',
       'results': 'results',
       'no_results': 'No results found',
-      'select_source': 'Tora of Eretz Israel',
+      'select_source': 'My YT Channels',
       'coming_soon': 'Coming Soon',
       'more_apps_from_developer': 'More apps from this developer',
       'playback_speed': 'Playback Speed:',
