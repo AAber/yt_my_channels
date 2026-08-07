@@ -162,7 +162,7 @@ class _YouTubeHomeScreenState extends State<YouTubeHomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Text(
                 isApiKeyError
-                    ? 'YouTube API key not configured.\nAdd your key to:\nlib/config/api_keys.dart'
+                    ? 'YouTube API key not configured.\nAdd your key to:\nlib/States/Keys.dart'
                     : '${l10n.error}: $_error',
                 textAlign: TextAlign.center,
                 style: TextStyle(

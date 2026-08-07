@@ -2,7 +2,7 @@ import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import '../models/lesson.dart';
 import '../services/vimeo_service.dart';
-import '../config/api_keys.dart';
+import '../States/Keys.dart';
 
 class BneiDavidScraper {
   static const _searchUrl =
@@ -63,7 +63,7 @@ class BneiDavidScraper {
     // Resolve mp4 URL via Vimeo API
     final mp4Url = await VimeoService.getProgressiveMp4(
       vimeoId,
-      ApiKeys.vimeoBearerToken,
+      vimeoBearerToken,
     );
 
     if (mp4Url == null) return null;

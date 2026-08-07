@@ -5,7 +5,7 @@ import '../screens/player_screen.dart';
 import '../screens/youtube_player_screen.dart';
 import '../services/vimeo_service.dart';
 import '../services/youtube_service.dart';
-import '../config/api_keys.dart';
+import '../States/Keys.dart';
 
 class TorahChatScreen extends StatefulWidget {
   const TorahChatScreen({super.key});
@@ -36,12 +36,12 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
 
   Future<void> _initAgent() async {
     _agent = TorahAgent(
-      config: AgentConfig(groqApiKey: ApiKeys.groqApiKey),
+      config: AgentConfig(groqApiKey: groqApiKey),
       sources: [
         MeirApiAdapter(),
         DavidApiAdapter(),
         YouTubeDataSource(
-          apiKey: ApiKeys.youtubeApiKey,
+          apiKey: Keys.googleApiKey,
           channels: _youtubeChannels,
         ),
       ],
@@ -148,7 +148,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
           ),
         );
       }
-      mp4Url = await VimeoService.getProgressiveMp4(vimeoId, ApiKeys.vimeoBearerToken);
+      mp4Url = await VimeoService.getProgressiveMp4(vimeoId, vimeoBearerToken);
       debugPrint(mp4Url != null
           ? '✅ CHAT_TAP meir: resolved mp4=$mp4Url'
           : '🔴 CHAT_TAP meir: Vimeo resolved NULL for vimeoId=$vimeoId');

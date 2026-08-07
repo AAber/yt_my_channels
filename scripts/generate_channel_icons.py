@@ -2,57 +2,79 @@
 """
 generate_channel_icons.py
 --------------------------
-Generates colored placeholder PNG icons for each channel/singer defined in CHANNELS.
-Run this script whenever you add or change channels.
+Downloads official YouTube channel avatar images for each channel in CHANNELS
+and saves them to assets/icon/<filename>.png.
 
 Usage:
     python3 scripts/generate_channel_icons.py
 
-Output:
-    assets/icon/<filename>.png  for each entry in CHANNELS
+Requirements:
+    pip install pillow
 """
 
-from PIL import Image, ImageDraw
+import urllib.request
+import ssl
+import re
 import os
+from PIL import Image
 
 # ─── EDIT THIS LIST to add/change channels ────────────────────────────────────
-# (filename_without_ext, display_label, background_hex_color)
+# (filename_without_ext, youtube_channel_id)
 CHANNELS = [
-    ("sia",     "Sia",          "#9B59B6"),
-    ("taylor",  "Taylor\nSwift",   "#FF69B4"),
-    ("ed",      "Ed\nSheeran",     "#FF8C00"),
-    ("adele",   "Adele",           "#4B0082"),
-    ("ariana",  "Ariana\nGrande",  "#FF1493"),
-    ("beyonce", "Beyoncé",         "#DAA520"),
-    ("drake",   "Drake",           "#1C1C1C"),
-    ("billie",  "Billie\nEilish",  "#00C864"),
-    ("weeknd",  "The\nWeeknd",     "#8B0000"),
+    ("sia",     "UCN9HPn2fq-NL8M5_kp4RWZQ"),
+    ("taylor",  "UCqECaJ8Gagnn7YCbPEzWH6g"),
+    ("ed",      "UC0C-w0YjGpqDXGB8IHb662A"),
+    ("ariana",  "UC9CoOnJkIBMdeijd9qYoT_g"),
+    ("beyonce", "UCuHzBCaKmtaLcRAOoazhCPA"),
+    ("drake",   "UCNTQH0uJzryQB4rRLGlv-Ww"),
+    ("billie",  "UCiGm_E4ZwYSHV3bcW1pnSeQ"),
 ]
 # ──────────────────────────────────────────────────────────────────────────────
 
-ICON_SIZE = 200
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "icon")
+HEADERS = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"}
+CTX = ssl._create_unverified_context()
 
 
-def generate_icon(filename: str, label: str, bg: str) -> None:
-    img = Image.new("RGB", (ICON_SIZE, ICON_SIZE), bg)
-    draw = ImageDraw.Draw(img)
-    lines = label.split("\n")
-    line_height = 36
-    y = ICON_SIZE // 2 - (len(lines) * line_height) // 2
-    for line in lines:
-        bbox = draw.textbbox((0, 0), line)
-        w = bbox[2] - bbox[0]
-        draw.text(((ICON_SIZE - w) // 2, y), line, fill="white")
-        y += line_height
-    path = os.path.join(OUT_DIR, f"{filename}.png")
-    img.save(path)
-    print(f"  ✓ {path}")
+def fetch_avatar(channel_id: str) -> bytes | None:
+    url = f"https://www.youtube.com/channel/{channel_id}"
+    req = urllib.request.Request(url, headers=HEADERS)
+    with urllib.request.urlopen(req, timeout=10, context=CTX) as r:
+        html = r.read().decode("utf-8", errors="ignore")
+
+    m = re.search(r'"avatar":\{"thumbnails":\[\{"url":"([^"]+)"', html)
+    if not m:
+        m = re.search(r'"channelAvatarImageUrl":"([^"]+)"', html)
+    if not m:
+        m = re.search(r'<meta property="og:image" content="([^"]+)"', html)
+    if not m:
+        return None
+
+    img_url = m.group(1).replace("\\u0026", "&")
+    img_req = urllib.request.Request(img_url, headers=HEADERS)
+    with urllib.request.urlopen(img_req, timeout=10, context=CTX) as ir:
+        return ir.read()
+
+
+def main():
+    os.makedirs(OUT_DIR, exist_ok=True)
+    print(f"Downloading {len(CHANNELS)} channel avatars...\n")
+    for fname, channel_id in CHANNELS:
+        out_path = os.path.join(OUT_DIR, f"{fname}.png")
+        try:
+            data = fetch_avatar(channel_id)
+            if not data:
+                print(f"  MISS  {fname} — avatar URL not found in page")
+                continue
+            with open(out_path, "wb") as f:
+                f.write(data)
+            img = Image.open(out_path)
+            print(f"  OK    {fname}.png  {img.size}  {len(data)//1024}KB")
+        except Exception as e:
+            print(f"  ERR   {fname}: {e}")
+
+    print("\nDone! Run update_pubspec_assets.py if you added new filenames.")
 
 
 if __name__ == "__main__":
-    os.makedirs(OUT_DIR, exist_ok=True)
-    print(f"Generating {len(CHANNELS)} icons into {os.path.abspath(OUT_DIR)}/\n")
-    for fname, label, color in CHANNELS:
-        generate_icon(fname, label, color)
-    print("\nDone! Remember to run update_pubspec_assets.py next.")
+    main()

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
-import '../config/api_keys.dart';
+import '../States/Keys.dart';
 
 class YouTubeVideo {
   final String id;
@@ -35,7 +35,7 @@ class YouTubeVideo {
 
 class YouTubeService {
   // Use API key from secure config file
-  static const String _apiKey = ApiKeys.youtubeApiKey;
+  static const String _apiKey = Keys.googleApiKey;
   static const String _baseUrl = 'https://www.googleapis.com/youtube/v3';
 
   // Od Yosef Hai channel ID
@@ -44,7 +44,7 @@ class YouTubeService {
   Future<String> _getUploadsPlaylistId(String channelId) async {
     try {
       if (_apiKey.isEmpty || _apiKey.contains('place')) {
-        throw Exception('YouTube API key not configured. Add your key to lib/config/api_keys.dart');
+        throw Exception('YouTube API key not configured. Add your key to lib/States/Keys.dart');
       }
       final url =
           '$_baseUrl/channels?part=contentDetails&id=$channelId&key=$_apiKey';
