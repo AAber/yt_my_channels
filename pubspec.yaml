@@ -1,7 +1,7 @@
-name: tora_of_israel
-description: A Flutter app for viewing Tora lessons
+name: yt_my_channels
+description: A Flutter app for viewing my favorite YotTube channels
 publish_to: 'none'
-version: 1.1.2+9
+version: 0.0.1+1
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
