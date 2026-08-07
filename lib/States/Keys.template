@@ -1,0 +1,25 @@
+library my_prj.keys;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Keys.template — copy this file to lib/States/Keys.dart and fill in your keys.
+// Keys.dart is listed in .gitignore and must NEVER be committed to the repo.
+// See README.md → "API Keys Setup" for instructions on obtaining each key.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Vimeo API bearer token
+// Get from: https://developer.vimeo.com → My Apps → New App → Authentication
+const String vimeoBearerToken = 'YOUR_VIMEO_BEARER_TOKEN';
+
+// Groq API key for Torah AI Assistant
+// Get from: https://console.groq.com → API Keys → Create API Key
+const String groqApiKey = 'YOUR_GROQ_API_KEY';
+
+// Google / YouTube API credentials
+class Keys {
+  static const String googleClientId        = 'YOUR_GOOGLE_CLIENT_ID';
+  static const String googleServerClientId  = 'YOUR_GOOGLE_SERVER_CLIENT_ID';
+
+  // YouTube Data API v3 key
+  // Get from: https://console.cloud.google.com → APIs & Services → Credentials
+  static const String googleApiKey          = 'YOUR_YOUTUBE_API_KEY';
+}
