@@ -3,19 +3,38 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'dart:developer' as developer;
 import 'l10n/app_localizations.dart';
 import 'l10n/language_provider.dart';
 import 'screens/source_selection_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'live.isaac770.israel.audio',
-    androidNotificationChannelName: 'תורת ישראל',
-    androidNotificationOngoing: true,
-    androidStopForegroundOnPause: true,
-  );
+  developer.log('▶ main() start', name: 'APP_INIT');
+
+  try {
+    developer.log('▶ Hive.initFlutter()', name: 'APP_INIT');
+    await Hive.initFlutter();
+    developer.log('✓ Hive ready', name: 'APP_INIT');
+  } catch (e, st) {
+    developer.log('✗ Hive failed: $e', name: 'APP_INIT', error: e, stackTrace: st);
+  }
+
+  try {
+    developer.log('▶ JustAudioBackground.init()', name: 'APP_INIT');
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'live.isaac770.israel.audio',
+      androidNotificationChannelName: 'yt_my_channels',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+    );
+    developer.log('✓ JustAudioBackground ready', name: 'APP_INIT');
+  } catch (e, st) {
+    developer.log('✗ JustAudioBackground failed: $e', name: 'APP_INIT', error: e, stackTrace: st);
+    // Continue — audio background is non-fatal for UI
+  }
+
+  developer.log('▶ runApp()', name: 'APP_INIT');
   runApp(
     ChangeNotifierProvider(
       create: (_) => LanguageProvider(),

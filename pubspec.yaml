@@ -66,15 +66,16 @@ flutter:
   uses-material-design: true
   
   assets:
-    - assets/icon/david.png
-    - assets/icon/yosef.png
-    - assets/icon/aviv.png
-    - assets/icon/maalot.png
-    - assets/icon/mi.png
+    - assets/sia_splash.png
+    - assets/icon/taylor.png
+    - assets/icon/ed.png
+    - assets/icon/adele.png
+    - assets/icon/ariana.png
+    - assets/icon/beyonce.png
+    - assets/icon/drake.png
+    - assets/icon/billie.png
+    - assets/icon/weeknd.png
     - assets/icon/meir.png
-    - assets/icon/holon.png
-    - assets/icon/mimaal.png
-    - assets/icon/shderot.png
     - assets/icon/tfc.png
 
 flutter_launcher_icons:
@@ -82,9 +83,12 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   min_sdk_android: 21
-  adaptive_icon_background: "#1976D2"
+  adaptive_icon_background: "#000000"
   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
 
 flutter_native_splash:
-  color: "#1976D2"
-  image: assets/icon/app_icon.png
+  color: "#000000"
+  image: assets/sia_splash.png
+  android_12:
+    color: "#000000"
+    image: assets/sia_splash.png
