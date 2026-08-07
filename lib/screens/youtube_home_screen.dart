@@ -6,7 +6,6 @@ import '../l10n/language_provider.dart';
 import '../services/youtube_service.dart';
 import 'source_selection_screen.dart';
 import 'youtube_player_screen.dart';
-import 'torah_chat_screen.dart';
 
 class YouTubeHomeScreen extends StatefulWidget {
   final String channelId;
@@ -148,13 +147,30 @@ class _YouTubeHomeScreenState extends State<YouTubeHomeScreen> {
     }
 
     if (_error != null) {
+      final isApiKeyError = _error!.contains('API key') || _error!.contains('400') || _error!.contains('403');
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            Icon(
+              isApiKeyError ? Icons.key_off : Icons.error_outline,
+              size: 64,
+              color: isApiKeyError ? Colors.orange : Colors.red,
+            ),
             const SizedBox(height: 16),
-            Text('${l10n.error}: $_error'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                isApiKeyError
+                    ? 'YouTube API key not configured.\nAdd your key to:\nlib/config/api_keys.dart'
+                    : '${l10n.error}: $_error',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: isApiKeyError ? Colors.orange[800] : null,
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadVideos,

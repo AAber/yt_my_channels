@@ -18,6 +18,7 @@ import os
 # ─── EDIT THIS LIST to add/change channels ────────────────────────────────────
 # (filename_without_ext, display_label, background_hex_color)
 CHANNELS = [
+    ("sia",     "Sia",          "#9B59B6"),
     ("taylor",  "Taylor\nSwift",   "#FF69B4"),
     ("ed",      "Ed\nSheeran",     "#FF8C00"),
     ("adele",   "Adele",           "#4B0082"),

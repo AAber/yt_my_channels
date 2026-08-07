@@ -64,114 +64,112 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
         },
       ),
       _SourceButtonData(
-        title: 'עוד יוסף חי',
-        subtitle: 'Od Yosef Hai',
-        iconPath: 'assets/icon/yosef.png',
+        title: 'Sia',
+        subtitle: 'sia',
+        iconPath: 'assets/icon/sia.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCQfTTiNEkZ3_HYr9S4zQB0g',
-                title: 'עוד יוסף חי',
+                channelId: 'UCN9HPn2fq-NL8M5_kp4RWZQ',
+                title: 'Sia',
               ),
             ),
           );
         },
       ),
       _SourceButtonData(
-        title: 'חב"ד רמת אביב',
-        subtitle: 'Chabad Ramat Aviv',
-        iconPath: 'assets/icon/aviv.png',
+        title: 'Taylor Swift',
+        subtitle: 'taylorswift',
+        iconPath: 'assets/icon/taylor.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCJYMW0GZaanXsFnt5pnI6QA',
-                title: 'חב"ד רמת אביב',
+                channelId: 'UCqECaJ8Gagnn7YCbPEzWH6g',
+                title: 'Taylor Swift',
               ),
             ),
           );
         },
       ),
       _SourceButtonData(
-        title: 'הסדר מעלות',
-        subtitle: 'הסדר מעלות',
-        iconPath: 'assets/icon/maalot.png',
+        title: 'Ed Sheeran',
+        subtitle: 'edsheeran',
+        iconPath: 'assets/icon/ed.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCXGUXEMhk3PaZxep7NVTM5A',
-                title: 'ישיבת הסדר מעלות',
+                channelId: 'UC0C-w0YjGpqDXGB8IHb662A',
+                title: 'Ed Sheeran',
               ),
             ),
           );
         },
       ),
       _SourceButtonData(
-        titleKey: 'mayonai_israel_title',
-        subtitleKey: 'mayonai_israel_subtitle',
-        iconPath: 'assets/icon/mi.png',
+        title: 'Ariana Grande',
+        subtitle: 'arianagrande',
+        iconPath: 'assets/icon/ariana.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCdoHZjm2ku452xK4f5gRzZw',
-                title: 'מעייני ישראל',
+                channelId: 'UC9CoOnJkIBMdeijd9qYoT_g',
+                title: 'Ariana Grande',
               ),
             ),
           );
         },
       ),
       _SourceButtonData(
-        titleKey: 'holon_yeshiva_title',
-        subtitleKey: 'holon_yeshiva_subtitle',
-        iconPath: 'assets/icon/holon.png',
+        title: 'Beyoncé',
+        subtitle: 'beyonce',
+        iconPath: 'assets/icon/beyonce.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCWdBoc1ZurwXJMOSq0eLx-A',
-                title: 'ישיבת חולון',
+                channelId: 'UCuHzBCaKmtaLcRAOoazhCPA',
+                title: 'Beyoncé',
               ),
             ),
           );
         },
       ),
       _SourceButtonData(
-        title: 'ממעל ממש',
-        subtitle: 'Mimaal Mamash',
-        iconPath: 'assets/icon/mimaal.png',
-        iconScale: 0.85,
+        title: 'Drake',
+        subtitle: 'drake',
+        iconPath: 'assets/icon/drake.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCkrqrlLmV0OBP9a3jMWTAcw',
-                title: 'ממעל ממש',
+                channelId: 'UCNTQH0uJzryQB4rRLGlv-Ww',
+                title: 'Drake',
               ),
             ),
           );
         },
       ),
       _SourceButtonData(
-        title: 'ישיבת שדרות',
-        subtitle: 'Yeshivat Shderot',
-        iconPath: 'assets/icon/shderot.png',
-        iconScale: 0.85,
+        title: 'Billie Eilish',
+        subtitle: 'billieeilish',
+        iconPath: 'assets/icon/billie.png',
         onTap: () {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UC4jSWBYE-jIllmJmsZC5xRQ',
-                title: 'ישיבת שדרות',
+                channelId: 'UCiGm_E4ZwYSHV3bcW1pnSeQ',
+                title: 'Billie Eilish',
               ),
             ),
           );
@@ -179,46 +177,20 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
       ),
     ];
 
-    // Shuffle the buttons randomly
+    // Shuffle the buttons randomly (keep בני דוד first)
+    final bneiDavid = _sourceButtons.removeAt(0);
     _sourceButtons.shuffle(Random());
+    _sourceButtons.insert(0, bneiDavid);
   }
 
   static const _youtubeChannels = [
-    {
-      'id': 'UCQfTTiNEkZ3_HYr9S4zQB0g',
-      'title': 'עוד יוסף חי',
-      'icon': 'assets/icon/yosef.png'
-    },
-    {
-      'id': 'UCJYMW0GZaanXsFnt5pnI6QA',
-      'title': 'חב"ד רמת אביב',
-      'icon': 'assets/icon/aviv.png'
-    },
-    {
-      'id': 'UCXGUXEMhk3PaZxep7NVTM5A',
-      'title': 'ישיבת הסדר מעלות',
-      'icon': 'assets/icon/maalot.png'
-    },
-    {
-      'id': 'UCdoHZjm2ku452xK4f5gRzZw',
-      'title': 'מעייני ישראל',
-      'icon': 'assets/icon/mi.png'
-    },
-    {
-      'id': 'UCWdBoc1ZurwXJMOSq0eLx-A',
-      'title': 'ישיבת חולון',
-      'icon': 'assets/icon/holon.png'
-    },
-    {
-      'id': 'UCkrqrlLmV0OBP9a3jMWTAcw',
-      'title': 'ממעל ממש',
-      'icon': 'assets/icon/mimaal.png'
-    },
-    {
-      'id': 'UC4jSWBYE-jIllmJmsZC5xRQ',
-      'title': 'ישיבת שדרות',
-      'icon': 'assets/icon/shderot.png'
-    },
+    {'id': 'UCN9HPn2fq-NL8M5_kp4RWZQ', 'title': 'Sia',           'icon': 'assets/icon/sia.png'},
+    {'id': 'UCqECaJ8Gagnn7YCbPEzWH6g', 'title': 'Taylor Swift',  'icon': 'assets/icon/taylor.png'},
+    {'id': 'UC0C-w0YjGpqDXGB8IHb662A', 'title': 'Ed Sheeran',    'icon': 'assets/icon/ed.png'},
+    {'id': 'UC9CoOnJkIBMdeijd9qYoT_g', 'title': 'Ariana Grande', 'icon': 'assets/icon/ariana.png'},
+    {'id': 'UCuHzBCaKmtaLcRAOoazhCPA', 'title': 'Beyoncé',       'icon': 'assets/icon/beyonce.png'},
+    {'id': 'UCNTQH0uJzryQB4rRLGlv-Ww', 'title': 'Drake',         'icon': 'assets/icon/drake.png'},
+    {'id': 'UCiGm_E4ZwYSHV3bcW1pnSeQ', 'title': 'Billie Eilish', 'icon': 'assets/icon/billie.png'},
   ];
 
   @override
@@ -457,9 +429,6 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
   }
 
   Widget _buildSourceGrid(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final isHebrew = l10n.locale.languageCode == 'he';
-
     return LayoutBuilder(
       builder: (context, constraints) {
         const columns = 2;
@@ -480,14 +449,11 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             mainAxisSpacing: spacing,
             childAspectRatio: aspectRatio,
             children: _sourceButtons.map((buttonData) {
-              final title = buttonData.title ?? _getLocalizedText(l10n, buttonData.titleKey!, isHebrew);
-              final subtitle = buttonData.subtitle ?? _getLocalizedText(l10n, buttonData.subtitleKey!, isHebrew);
               return _buildSourceButton(
                 context,
-                title: title,
-                subtitle: subtitle,
+                title: buttonData.title,
+                subtitle: buttonData.subtitle,
                 iconPath: buttonData.iconPath,
-                iconScale: buttonData.iconScale,
                 onTap: buttonData.onTap,
               );
             }).toList(),
@@ -495,21 +461,6 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
         );
       },
     );
-  }
-
-  String _getLocalizedText(AppLocalizations l10n, String key, bool isHebrew) {
-    switch (key) {
-      case 'mayonai_israel_title':
-        return isHebrew ? 'מעייני ישראל' : 'Mayonaiy Israel';
-      case 'mayonai_israel_subtitle':
-        return isHebrew ? 'Mayonaiy Israel' : 'מעייני ישראל';
-      case 'holon_yeshiva_title':
-        return isHebrew ? 'ישיבת חולון' : 'Holon Yeshiva';
-      case 'holon_yeshiva_subtitle':
-        return isHebrew ? 'Holon Yeshiva' : 'ישיבת חולון';
-      default:
-        return key;
-    }
   }
 
   Widget _buildBottomAppBar() {
@@ -611,7 +562,6 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
     required String subtitle,
     String? iconPath,
     IconData? icon,
-    double iconScale = 1.0,
     required VoidCallback onTap,
   }) {
     return Card(
@@ -633,8 +583,8 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: iconPath != null
                         ? FractionallySizedBox(
-                            widthFactor: iconScale,
-                            heightFactor: iconScale,
+                            widthFactor: 1.0,
+                            heightFactor: 1.0,
                             child: Image.asset(
                               iconPath,
                               fit: BoxFit.contain,
@@ -712,21 +662,15 @@ class _SearchResult {
 }
 
 class _SourceButtonData {
-  final String? title;
-  final String? subtitle;
-  final String? titleKey;
-  final String? subtitleKey;
+  final String title;
+  final String subtitle;
   final String iconPath;
-  final double iconScale;
   final VoidCallback onTap;
 
   _SourceButtonData({
-    this.title,
-    this.subtitle,
-    this.titleKey,
-    this.subtitleKey,
+    required this.title,
+    required this.subtitle,
     required this.iconPath,
-    this.iconScale = 1.0,
     required this.onTap,
   });
 }

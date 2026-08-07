@@ -5,11 +5,10 @@ import '../screens/player_screen.dart';
 import '../screens/youtube_player_screen.dart';
 import '../services/vimeo_service.dart';
 import '../services/youtube_service.dart';
-import '../States/Keys.dart';
 import '../config/api_keys.dart';
 
 class TorahChatScreen extends StatefulWidget {
-  const TorahChatScreen({Key? key}) : super(key: key);
+  const TorahChatScreen({super.key});
 
   @override
   State<TorahChatScreen> createState() => _TorahChatScreenState();
@@ -20,13 +19,13 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   bool _isLoading = true;
 
   static const _youtubeChannels = [
-    YouTubeChannel('UCQfTTiNEkZ3_HYr9S4zQB0g', 'עוד יוסף חי',       'assets/icon/yosef.png'),
-    YouTubeChannel('UCJYMW0GZaanXsFnt5pnI6QA', 'חב"ד רמת אביב',     'assets/icon/aviv.png'),
-    YouTubeChannel('UCXGUXEMhk3PaZxep7NVTM5A', 'ישיבת הסדר מעלות',  'assets/icon/maalot.png'),
-    YouTubeChannel('UCdoHZjm2ku452xK4f5gRzZw', 'מעייני ישראל',      'assets/icon/mi.png'),
-    YouTubeChannel('UCWdBoc1ZurwXJMOSq0eLx-A', 'ישיבת חולון',       'assets/icon/holon.png'),
-    YouTubeChannel('UCkrqrlLmV0OBP9a3jMWTAcw', 'ממעל ממש',         'assets/icon/mimaal.png'),
-    YouTubeChannel('UC4jSWBYE-jIllmJmsZC5xRQ', 'ישיבת שדרות',       'assets/icon/shderot.png'),
+    YouTubeChannel('UCN9HPn2fq-NL8M5_kp4RWZQ', 'Sia',           'assets/icon/sia.png'),
+    YouTubeChannel('UCqECaJ8Gagnn7YCbPEzWH6g', 'Taylor Swift',  'assets/icon/taylor.png'),
+    YouTubeChannel('UC0C-w0YjGpqDXGB8IHb662A', 'Ed Sheeran',    'assets/icon/ed.png'),
+    YouTubeChannel('UC9CoOnJkIBMdeijd9qYoT_g', 'Ariana Grande', 'assets/icon/ariana.png'),
+    YouTubeChannel('UCuHzBCaKmtaLcRAOoazhCPA', 'Beyoncé',       'assets/icon/beyonce.png'),
+    YouTubeChannel('UCNTQH0uJzryQB4rRLGlv-Ww', 'Drake',         'assets/icon/drake.png'),
+    YouTubeChannel('UCiGm_E4ZwYSHV3bcW1pnSeQ', 'Billie Eilish', 'assets/icon/billie.png'),
   ];
 
   @override
@@ -37,7 +36,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
 
   Future<void> _initAgent() async {
     _agent = TorahAgent(
-      config: AgentConfig(groqApiKey: groqApiKey),
+      config: AgentConfig(groqApiKey: ApiKeys.groqApiKey),
       sources: [
         MeirApiAdapter(),
         DavidApiAdapter(),
@@ -149,7 +148,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
           ),
         );
       }
-      mp4Url = await VimeoService.getProgressiveMp4(vimeoId, vimeoBearerToken);
+      mp4Url = await VimeoService.getProgressiveMp4(vimeoId, ApiKeys.vimeoBearerToken);
       debugPrint(mp4Url != null
           ? '✅ CHAT_TAP meir: resolved mp4=$mp4Url'
           : '🔴 CHAT_TAP meir: Vimeo resolved NULL for vimeoId=$vimeoId');

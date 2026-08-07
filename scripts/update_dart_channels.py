@@ -16,15 +16,16 @@ import re
 
 # ─── EDIT THIS LIST to change channels ────────────────────────────────────────
 # (channel_id, dart_title, dart_subtitle, icon_filename_without_ext)
+# Channel IDs verified August 2025 via youtube.com/@handle/about
+# Note: בני דוד is always kept as the first button and is NOT in this list.
 CHANNELS = [
-    ("UCqECaJ8Gagnn7YCbPEzWH6g", "Taylor Swift",   "taylorswift",    "taylor"),
-    ("UC0C-w0YjGpqDXGB8IHb662A", "Ed Sheeran",     "edsheeran",      "ed"),
-    ("UCsRM0YB_dabtEPGPTKo-gcw", "Adele",          "adele",          "adele"),
-    ("UCJrOtniJ0-NWz37R30urifQ", "Ariana Grande",  "arianagrande",   "ariana"),
-    ("UCBmNph6atAoGfqLoCL_duAg", "Beyoncé",        "beyonce",        "beyonce"),
-    ("UCByOQJjav0CUDwxCk-wiVtw", "Drake",          "drake",          "drake"),
-    ("UCiGm_E4ZwYSHV3bcW1pnSeQ", "Billie Eilish",  "billieeilish",   "billie"),
-    ("UC0WP5P-ufpRfjbNrmOWwLBQ", "The Weeknd",     "theweeknd",      "weeknd"),
+    ("UCN9HPn2fq-NL8M5_kp4RWZQ", "Sia",           "sia",          "billie"),
+    ("UCqECaJ8Gagnn7YCbPEzWH6g", "Taylor Swift",  "taylorswift",  "taylor"),
+    ("UC0C-w0YjGpqDXGB8IHb662A", "Ed Sheeran",    "edsheeran",    "ed"),
+    ("UC9CoOnJkIBMdeijd9qYoT_g", "Ariana Grande", "arianagrande", "ariana"),
+    ("UCuHzBCaKmtaLcRAOoazhCPA", "Beyoncé",       "beyonce",      "beyonce"),
+    ("UCNTQH0uJzryQB4rRLGlv-Ww", "Drake",         "drake",        "drake"),
+    ("UCiGm_E4ZwYSHV3bcW1pnSeQ", "Billie Eilish", "billieeilish", "billie"),
 ]
 # ──────────────────────────────────────────────────────────────────────────────
 

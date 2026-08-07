@@ -43,9 +43,12 @@ class YouTubeService {
 
   Future<String> _getUploadsPlaylistId(String channelId) async {
     try {
+      if (_apiKey.isEmpty || _apiKey.contains('place')) {
+        throw Exception('YouTube API key not configured. Add your key to lib/config/api_keys.dart');
+      }
       final url =
           '$_baseUrl/channels?part=contentDetails&id=$channelId&key=$_apiKey';
-      developer.log('Fetching uploads playlist ID from: $url');
+      developer.log('Fetching uploads playlist ID for channel: $channelId');
 
       final response = await http.get(Uri.parse(url));
 
@@ -59,6 +62,14 @@ class YouTubeService {
           developer.log('Uploads playlist ID: $uploadsPlaylistId');
           return uploadsPlaylistId;
         }
+        throw Exception('Channel not found: $channelId');
+      }
+
+      if (response.statusCode == 400) {
+        throw Exception('YouTube API key is invalid or not configured. Status: 400');
+      }
+      if (response.statusCode == 403) {
+        throw Exception('YouTube API quota exceeded or key restricted. Status: 403');
       }
 
       throw Exception(
