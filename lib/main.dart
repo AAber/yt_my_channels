@@ -6,14 +6,15 @@ import 'package:just_audio_background/just_audio_background.dart';
 import 'dart:developer' as developer;
 import 'l10n/app_localizations.dart';
 import 'l10n/language_provider.dart';
+import 'screens/channel_picker_screen.dart';
 import 'screens/source_selection_screen.dart';
+import 'services/saved_channels_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   developer.log('▶ main() start', name: 'APP_INIT');
 
   try {
-    developer.log('▶ Hive.initFlutter()', name: 'APP_INIT');
     await Hive.initFlutter();
     developer.log('✓ Hive ready', name: 'APP_INIT');
   } catch (e, st) {
@@ -21,9 +22,8 @@ Future<void> main() async {
   }
 
   try {
-    developer.log('▶ JustAudioBackground.init()', name: 'APP_INIT');
     await JustAudioBackground.init(
-      androidNotificationChannelId: 'live.isaac770.israel.audio',
+      androidNotificationChannelId: 'live.isaac770.yt_my_channels.audio',
       androidNotificationChannelName: 'yt_my_channels',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
@@ -31,27 +31,35 @@ Future<void> main() async {
     developer.log('✓ JustAudioBackground ready', name: 'APP_INIT');
   } catch (e, st) {
     developer.log('✗ JustAudioBackground failed: $e', name: 'APP_INIT', error: e, stackTrace: st);
-    // Continue — audio background is non-fatal for UI
   }
+
+  // Load saved channels before deciding which screen to show
+  await SavedChannelsService.instance.load();
+  developer.log('✓ SavedChannels: ${SavedChannelsService.instance.channels.length} channels', name: 'APP_INIT');
 
   developer.log('▶ runApp()', name: 'APP_INIT');
   runApp(
     ChangeNotifierProvider(
       create: (_) => LanguageProvider(),
-      child: const DavidApp(),
+      child: const MyYTApp(),
     ),
   );
 }
 
-class DavidApp extends StatelessWidget {
-  const DavidApp({super.key});
+class MyYTApp extends StatelessWidget {
+  const MyYTApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
+        // Route: first launch → ChannelPickerScreen, returning user → SourceSelectionScreen
+        final home = SavedChannelsService.instance.isEmpty
+            ? const ChannelPickerScreen()
+            : const SourceSelectionScreen();
+
         return MaterialApp(
-          title: "My YT Music",
+          title: 'My YT Music',
           debugShowCheckedModeBanner: false,
           localizationsDelegates: const [
             AppLocalizations.delegate,
@@ -83,7 +91,7 @@ class DavidApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
-          home: const SourceSelectionScreen(),
+          home: home,
         );
       },
     );
