@@ -13,6 +13,17 @@ class ChannelPickerScreen extends StatefulWidget {
   State<ChannelPickerScreen> createState() => _ChannelPickerScreenState();
 }
 
+// avatarUrl uses 'asset:' prefix for bundled images
+const _kQuickPicks = [
+  SavedChannel(id: 'UCN9HPn2fq-NL8M5_kp4RWZQ', title: 'Sia',          avatarUrl: 'asset:assets/icon/sia.png'),
+  SavedChannel(id: 'UCqECaJ8Gagnn7YCbPEzWH6g', title: 'Taylor Swift',  avatarUrl: 'asset:assets/icon/taylor.png'),
+  SavedChannel(id: 'UC0C-w0YjGpqDXGB8IHb662A', title: 'Ed Sheeran',    avatarUrl: 'asset:assets/icon/ed.png'),
+  SavedChannel(id: 'UC9CoOnJkIBMdeijd9qYoT_g', title: 'Ariana Grande', avatarUrl: 'asset:assets/icon/ariana.png'),
+  SavedChannel(id: 'UCuHzBCaKmtaLcRAOoazhCPA', title: 'Beyoncé',       avatarUrl: 'asset:assets/icon/beyonce.png'),
+  SavedChannel(id: 'UCNTQH0uJzryQB4rRLGlv-Ww', title: 'Drake',         avatarUrl: 'asset:assets/icon/drake.png'),
+  SavedChannel(id: 'UCiGm_E4ZwYSHV3bcW1pnSeQ', title: 'Billie Eilish', avatarUrl: 'asset:assets/icon/billie.png'),
+];
+
 class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
   final _service = SavedChannelsService.instance;
   final _ytService = YouTubeService();
@@ -190,6 +201,35 @@ class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
 
           const Divider(height: 1),
 
+          // ── Quick picks ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final qp in _kQuickPicks)
+                  FilterChip(
+                    label: Text(qp.title),
+                    selected: _staged.any((c) => c.id == qp.id),
+                    onSelected: _atMax && !_staged.any((c) => c.id == qp.id)
+                        ? null
+                        : (selected) {
+                            setState(() {
+                              if (selected) {
+                                _staged.add(qp);
+                              } else {
+                                _staged.removeWhere((c) => c.id == qp.id);
+                              }
+                            });
+                          },
+                  ),
+              ],
+            ),
+          ),
+
+          const Divider(height: 1),
+
           // ── Staged channel list ──────────────────────────────────────────
           Expanded(
             child: _staged.isEmpty
@@ -252,14 +292,19 @@ class _ChannelTile extends StatelessWidget {
   final VoidCallback onRemove;
   const _ChannelTile({super.key, required this.channel, required this.onRemove});
 
+  static ImageProvider? _avatarImage(String url) {
+    if (url.isEmpty) return null;
+    if (url.startsWith('asset:')) return AssetImage(url.substring(6));
+    return NetworkImage(url);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final img = _avatarImage(channel.avatarUrl);
     return ListTile(
       leading: CircleAvatar(
-        backgroundImage: channel.avatarUrl.isNotEmpty
-            ? NetworkImage(channel.avatarUrl)
-            : null,
-        child: channel.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
+        backgroundImage: img,
+        child: img == null ? const Icon(Icons.person) : null,
       ),
       title: Text(channel.title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(channel.id, style: const TextStyle(fontSize: 11, color: Colors.grey)),
