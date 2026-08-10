@@ -3,16 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:math';
 import '../l10n/app_localizations.dart';
 import '../l10n/language_provider.dart';
-import '../models/series.dart';
-import '../services/api_service.dart';
+import '../services/saved_channels_service.dart';
 import '../services/youtube_service.dart';
 import '../services/watch_history_service.dart';
 import '../widgets/history_drawer.dart';
-import 'home_screen.dart';
-import 'lessons_screen.dart';
+import 'channel_picker_screen.dart';
 import 'youtube_home_screen.dart';
 import 'youtube_player_screen.dart';
 import 'torah_chat_screen.dart';
@@ -26,172 +23,24 @@ class SourceSelectionScreen extends StatefulWidget {
 
 class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
   String _version = '';
-  final TextEditingController _searchController = TextEditingController();
-  final ApiService _apiService = ApiService();
-  final YouTubeService _youtubeService = YouTubeService();
-  final WatchHistoryService _historyService = WatchHistoryService();
-  final HistoryDrawerController _drawerController = HistoryDrawerController();
+  final _searchController = TextEditingController();
+  final _ytService = YouTubeService();
+  final _historyService = WatchHistoryService();
+  final _drawerController = HistoryDrawerController();
 
   bool _isSearching = false;
   bool _searchLoading = false;
   List<_SearchResult> _searchResults = [];
-  List<_SourceButtonData> _sourceButtons = [];
+
+  List<SavedChannel> get _channels => SavedChannelsService.instance.channels;
 
   @override
   void initState() {
     super.initState();
     _historyService.init();
-    PackageInfo.fromPlatform().then((info) {
-      setState(() => _version = info.version);
-    });
+    PackageInfo.fromPlatform().then((info) => setState(() => _version = info.version));
     _searchController.addListener(_onSearchChanged);
-    _initializeSourceButtons();
   }
-
-  void _initializeSourceButtons() {
-    _sourceButtons = [
-      _SourceButtonData(
-        title: 'בני דוד',
-        subtitle: 'Bnei David',
-        iconPath: 'assets/icon/david.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Sia',
-        subtitle: 'sia',
-        iconPath: 'assets/icon/sia.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCN9HPn2fq-NL8M5_kp4RWZQ',
-                title: 'Sia',
-              ),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Taylor Swift',
-        subtitle: 'taylorswift',
-        iconPath: 'assets/icon/taylor.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCqECaJ8Gagnn7YCbPEzWH6g',
-                title: 'Taylor Swift',
-              ),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Ed Sheeran',
-        subtitle: 'edsheeran',
-        iconPath: 'assets/icon/ed.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UC0C-w0YjGpqDXGB8IHb662A',
-                title: 'Ed Sheeran',
-              ),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Ariana Grande',
-        subtitle: 'arianagrande',
-        iconPath: 'assets/icon/ariana.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UC9CoOnJkIBMdeijd9qYoT_g',
-                title: 'Ariana Grande',
-              ),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Beyoncé',
-        subtitle: 'beyonce',
-        iconPath: 'assets/icon/beyonce.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCuHzBCaKmtaLcRAOoazhCPA',
-                title: 'Beyoncé',
-              ),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Drake',
-        subtitle: 'drake',
-        iconPath: 'assets/icon/drake.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCNTQH0uJzryQB4rRLGlv-Ww',
-                title: 'Drake',
-              ),
-            ),
-          );
-        },
-      ),
-      _SourceButtonData(
-        title: 'Billie Eilish',
-        subtitle: 'billieeilish',
-        iconPath: 'assets/icon/billie.png',
-        onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const YouTubeHomeScreen(
-                channelId: 'UCiGm_E4ZwYSHV3bcW1pnSeQ',
-                title: 'Billie Eilish',
-              ),
-            ),
-          );
-        },
-      ),
-    ];
-
-    // Shuffle the buttons randomly (keep בני דוד first)
-    final bneiDavid = _sourceButtons.removeAt(0);
-    _sourceButtons.shuffle(Random());
-    _sourceButtons.insert(0, bneiDavid);
-  }
-
-  static const _youtubeChannels = [
-    {'id': 'UCN9HPn2fq-NL8M5_kp4RWZQ', 'title': 'Sia',           'icon': 'assets/icon/sia.png'},
-    {'id': 'UCqECaJ8Gagnn7YCbPEzWH6g', 'title': 'Taylor Swift',  'icon': 'assets/icon/taylor.png'},
-    {'id': 'UC0C-w0YjGpqDXGB8IHb662A', 'title': 'Ed Sheeran',    'icon': 'assets/icon/ed.png'},
-    {'id': 'UC9CoOnJkIBMdeijd9qYoT_g', 'title': 'Ariana Grande', 'icon': 'assets/icon/ariana.png'},
-    {'id': 'UCuHzBCaKmtaLcRAOoazhCPA', 'title': 'Beyoncé',       'icon': 'assets/icon/beyonce.png'},
-    {'id': 'UCNTQH0uJzryQB4rRLGlv-Ww', 'title': 'Drake',         'icon': 'assets/icon/drake.png'},
-    {'id': 'UCiGm_E4ZwYSHV3bcW1pnSeQ', 'title': 'Billie Eilish', 'icon': 'assets/icon/billie.png'},
-  ];
 
   @override
   void dispose() {
@@ -213,53 +62,42 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
     setState(() => _searchLoading = true);
     final results = <_SearchResult>[];
     final q = query.toLowerCase();
-
-    // Search Bnei David series
-    try {
-      final allSeries = await _apiService.getSeries();
-      for (final s in allSeries) {
-        if (s.name.toLowerCase().contains(q)) {
-          results.add(_SearchResult.series(s));
-        }
-      }
-    } catch (_) {}
-
-    // Search YouTube channels
-    for (final ch in _youtubeChannels) {
+    for (final ch in _channels) {
       try {
-        final videos =
-            await _youtubeService.getChannelVideos(channelId: ch['id']);
+        final videos = await _ytService.getChannelVideos(channelId: ch.id);
         for (final v in videos) {
-          if (v.title.toLowerCase().contains(q) ||
-              v.description.toLowerCase().contains(q)) {
-            results.add(_SearchResult.video(v, ch['title']!, ch['icon']!));
+          if (v.title.toLowerCase().contains(q) || v.description.toLowerCase().contains(q)) {
+            results.add(_SearchResult(video: v, channel: ch));
           }
         }
       } catch (_) {}
     }
-
     if (mounted && _searchController.text.trim().toLowerCase() == q) {
-      setState(() {
-        _searchResults = results;
-        _searchLoading = false;
-      });
+      setState(() { _searchResults = results; _searchLoading = false; });
     }
   }
 
   Future<void> _sendFeedback() async {
-    final subject =
-        Uri.encodeComponent('משוב לאפליקציה תורת א"י גרסה $_version');
-    final uri = Uri.parse('mailto:banzashi@gmail.com?subject=$subject');
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final subject = Uri.encodeComponent('Feedback — yt_my_channels v$_version');
+    await launchUrl(Uri.parse('mailto:banzashi@gmail.com?subject=$subject'),
+        mode: LaunchMode.externalApplication);
+  }
+
+  void _openPicker({bool isAddMode = false}) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ChannelPickerScreen(isAddMode: isAddMode)),
+    );
+    setState(() {}); // refresh grid after returning
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<LanguageProvider>(
-      builder: (context, languageProvider, child) {
+      builder: (context, languageProvider, _) {
         final l10n = AppLocalizations.of(context);
-        
         final isHebrew = languageProvider.locale.languageCode == 'he';
+
         return HistoryDrawerScaffold(
           historyService: _historyService,
           controller: _drawerController,
@@ -268,21 +106,12 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             centerTitle: true,
             automaticallyImplyLeading: false,
             leading: isHebrew
-                ? IconButton(
-                    icon: const Icon(Icons.history),
-                    onPressed: _drawerController.open,
-                  )
+                ? IconButton(icon: const Icon(Icons.history), onPressed: _drawerController.open)
                 : null,
             actions: [
               if (!isHebrew)
-                IconButton(
-                  icon: const Icon(Icons.history),
-                  onPressed: _drawerController.open,
-                ),
-              IconButton(
-                icon: const Icon(Icons.email_outlined),
-                onPressed: _sendFeedback,
-              ),
+                IconButton(icon: const Icon(Icons.history), onPressed: _drawerController.open),
+              IconButton(icon: const Icon(Icons.email_outlined), onPressed: _sendFeedback),
               IconButton(
                 icon: const Icon(Icons.language),
                 onPressed: () => languageProvider.toggleLanguage(),
@@ -291,7 +120,6 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
           ),
           body: Column(
             children: [
-              // Search box
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: TextField(
@@ -304,87 +132,114 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
                             icon: const Icon(Icons.clear),
                             onPressed: () {
                               _searchController.clear();
-                              setState(() {
-                                _isSearching = false;
-                                _searchResults = [];
-                              });
+                              setState(() { _isSearching = false; _searchResults = []; });
                             },
                           )
                         : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
-
-              // Search results or source grid
               Expanded(
                 child: _isSearching
                     ? _buildSearchResults(l10n)
-                    : _buildSourceGrid(context),
+                    : _buildGrid(context),
               ),
             ],
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
           floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const TorahChatScreen(),
-                ),
-              );
-            },
-            backgroundColor: Colors.orange,
-            child: const Icon(
-              Icons.auto_awesome,
-              color: Colors.white,
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TorahChatScreen()),
             ),
+            backgroundColor: Colors.orange,
+            child: const Icon(Icons.auto_awesome, color: Colors.white),
           ),
-          bottomNavigationBar: _isSearching ? null : _buildBottomAppBar(),
+          bottomNavigationBar: _isSearching ? null : _buildBottomBar(),
         );
       },
     );
   }
 
-  WatchHistoryService get historyService => _historyService;
+  // ── Grid ──────────────────────────────────────────────────────────────────
+
+  Widget _buildGrid(BuildContext context) {
+    final items = _channels;
+    // +1 for the "Add channel" tile
+    final count = items.length + 1;
+    final cols = 2;
+
+    return LayoutBuilder(builder: (context, constraints) {
+      const hPad = 16.0, spacing = 12.0;
+      final rows = ((count / cols).ceil()).clamp(1, 5);
+      final tileW = (constraints.maxWidth - hPad * 2 - spacing) / cols;
+      final tileH = (constraints.maxHeight - spacing * (rows - 1)) / rows;
+      final ratio = tileW / tileH;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
+        child: GridView.builder(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: ratio,
+          ),
+          itemCount: count,
+          itemBuilder: (context, index) {
+            if (index < items.length) {
+              return _ChannelButton(
+                channel: items[index],
+                onTap: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => YouTubeHomeScreen(
+                      channelId: items[index].id,
+                      title: items[index].title,
+                    ),
+                  ),
+                ),
+                onLongPress: () => _openPicker(isAddMode: true),
+              );
+            }
+            // "+" add tile
+            return _AddChannelButton(
+              onTap: () => _openPicker(isAddMode: true),
+              atMax: items.length >= SavedChannelsService.maxChannels,
+            );
+          },
+        ),
+      );
+    });
+  }
+
+  // ── Search results ────────────────────────────────────────────────────────
 
   Widget _buildSearchResults(AppLocalizations l10n) {
-    if (_searchLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_searchLoading) return const Center(child: CircularProgressIndicator());
     if (_searchController.text.trim().length < 2) {
-      return Center(
-        child: Text(
-          l10n.translate('type_to_search'),
-          style: const TextStyle(color: Colors.grey),
-        ),
-      );
+      return Center(child: Text(l10n.translate('type_to_search'),
+          style: const TextStyle(color: Colors.grey)));
     }
     if (_searchResults.isEmpty) {
-      return Center(
-        child: Text(
-          l10n.translate('no_results'),
-          style: const TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      );
+      return Center(child: Text(l10n.translate('no_results'),
+          style: const TextStyle(fontSize: 16, color: Colors.grey)));
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(
-            '${_searchResults.length} ${l10n.translate("results")}',
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          child: Text('${_searchResults.length} ${l10n.translate("results")}',
+              style: const TextStyle(fontSize: 14, color: Colors.grey)),
         ),
         Expanded(
           child: ListView.builder(
             itemCount: _searchResults.length,
-            itemBuilder: (context, index) =>
-                _buildResultTile(_searchResults[index]),
+            itemBuilder: (context, i) => _buildResultTile(_searchResults[i]),
           ),
         ),
       ],
@@ -395,75 +250,31 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: ListTile(
-        leading: Image.asset(
-          result.iconPath,
-          width: 36,
-          height: 36,
-          errorBuilder: (_, __, ___) => const Icon(Icons.play_circle_outline),
+        leading: CircleAvatar(
+          backgroundImage: result.channel.avatarUrl.isNotEmpty
+              ? channelAvatarImage(result.channel.avatarUrl)
+              : null,
+          child: result.channel.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
         ),
-        title: Text(result.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text(result.sourceName, style: const TextStyle(fontSize: 12)),
+        title: Text(result.video.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+        subtitle: Text(result.channel.title, style: const TextStyle(fontSize: 12)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () => _openResult(result),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => YouTubePlayerScreen(
+              video: result.video,
+              channelTitle: result.channel.title,
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  void _openResult(_SearchResult result) {
-    if (result.series != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => LessonsScreen(series: result.series!)),
-      );
-    } else if (result.video != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => YouTubePlayerScreen(
-                  video: result.video!,
-                  channelTitle: result.sourceName,
-                )),
-      );
-    }
-  }
+  // ── Bottom bar ────────────────────────────────────────────────────────────
 
-  Widget _buildSourceGrid(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const columns = 2;
-        const rows = 4;
-        const hPad = 16.0;
-        const spacing = 12.0;
-        final tileWidth = (constraints.maxWidth - hPad * 2 - spacing) / columns;
-        final tileHeight = (constraints.maxHeight - spacing * (rows - 1)) / rows;
-        final aspectRatio = tileWidth / tileHeight;
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
-          child: GridView.count(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            crossAxisCount: columns,
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: spacing,
-            childAspectRatio: aspectRatio,
-            children: _sourceButtons.map((buttonData) {
-              return _buildSourceButton(
-                context,
-                title: buttonData.title,
-                subtitle: buttonData.subtitle,
-                iconPath: buttonData.iconPath,
-                onTap: buttonData.onTap,
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildBottomAppBar() {
+  Widget _buildBottomBar() {
     final l10n = AppLocalizations.of(context);
     return BottomAppBar(
       color: Theme.of(context).primaryColor,
@@ -472,26 +283,18 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            l10n.translate('more_apps_from_developer'),
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white),
-          ),
+          Text(l10n.translate('more_apps_from_developer'),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white)),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildAppButton(
-                'מכון מאיר לנייד',
-                'mobile.meritv.com',
-                'https://apps.apple.com/us/app/machon-meir-%D7%9E%D7%9B%D7%95%D7%9F-%D7%9E%D7%90%D7%99%D7%A8-%D7%9C%D7%A0%D7%99%D7%99%D7%93/id6447646214',
-                'assets/icon/meir.png',
-              ),
-              _buildAppButton(
-                'תהילים לחסידים',
-                'live.isaac770.tfc',
-                'https://apps.apple.com/us/app/tehilim-for-%D7%AA%D7%94%D7%99%D7%9C%D7%99%D7%9D-%D7%9C%D7%97%D7%A1%D7%99%D7%93%D7%99%D7%9D/id6503480097',
-                'assets/icon/tfc.png',
-              ),
+              _buildAppButton('מכון מאיר לנייד', 'mobile.meritv.com',
+                  'https://apps.apple.com/us/app/machon-meir-%D7%9E%D7%9B%D7%95%D7%9F-%D7%9E%D7%90%D7%99%D7%A8-%D7%9C%D7%A0%D7%99%D7%99%D7%93/id6447646214',
+                  'assets/icon/meir.png'),
+              _buildAppButton('תהילים לחסידים', 'live.isaac770.tfc',
+                  'https://apps.apple.com/us/app/tehilim-for-%D7%AA%D7%94%D7%99%D7%9C%D7%99%D7%9D-%D7%9C%D7%97%D7%A1%D7%99%D7%93%D7%99%D7%9D/id6503480097',
+                  'assets/icon/tfc.png'),
             ],
           ),
         ],
@@ -499,78 +302,53 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
     );
   }
 
-  Widget _buildAppButton(String name, String androidPackageName,
-      String iosAppStoreUrl, String iconPath) {
+  Widget _buildAppButton(String name, String androidPkg, String iosUrl, String iconPath) {
     return InkWell(
-      onTap: () => _launchApp(androidPackageName, iosAppStoreUrl),
+      onTap: () async {
+        final url = defaultTargetPlatform == TargetPlatform.iOS
+            ? Uri.parse(iosUrl)
+            : Uri.parse('https://play.google.com/store/apps/details?id=$androidPkg');
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      },
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white54, width: 1),
+          border: Border.all(color: Colors.white54),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              iconPath,
-              width: 18,
-              height: 18,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.apps, size: 18, color: Colors.white);
-              },
-            ),
+            Image.asset(iconPath, width: 18, height: 18,
+                errorBuilder: (_, __, ___) => const Icon(Icons.apps, size: 18, color: Colors.white)),
             const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                name,
+            Flexible(child: Text(name,
                 style: const TextStyle(fontSize: 13, color: Colors.white),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+                maxLines: 1, overflow: TextOverflow.ellipsis)),
           ],
         ),
       ),
     );
   }
+}
 
-  Future<void> _launchApp(
-      String androidPackageName, String iosAppStoreUrl) async {
-    try {
-      Uri url;
+// ── Channel grid button ───────────────────────────────────────────────────────
 
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        // iOS - open App Store
-        url = Uri.parse(iosAppStoreUrl);
-      } else {
-        // Android - open Play Store
-        url = Uri.parse(
-            'https://play.google.com/store/apps/details?id=$androidPackageName');
-      }
+class _ChannelButton extends StatelessWidget {
+  final SavedChannel channel;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  const _ChannelButton({required this.channel, required this.onTap, required this.onLongPress});
 
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } catch (e) {
-      // Silently handle launch errors
-    }
-  }
-
-  Widget _buildSourceButton(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    String? iconPath,
-    IconData? icon,
-    required VoidCallback onTap,
-  }) {
+  @override
+  Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(8),
@@ -579,58 +357,21 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: ColoredBox(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child: iconPath != null
-                        ? FractionallySizedBox(
-                            widthFactor: 1.0,
-                            heightFactor: 1.0,
-                            child: Image.asset(
-                              iconPath,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.school,
-                                    color: Theme.of(context).primaryColor,
-                                    size: 32,
-                                  ),
-                                );
-                              },
-                            ),
-                          )
-                        : Center(
-                            child: Icon(
-                              icon ?? Icons.add_circle_outline,
-                              color: Colors.grey,
-                              size: 32,
-                            ),
-                          ),
-                  ),
+                  child: channel.avatarUrl.isNotEmpty
+                      ? Image(
+                          image: channelAvatarImage(channel.avatarUrl),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => const _FallbackIcon())
+                      : const _FallbackIcon(),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey[600],
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              const SizedBox(height: 6),
+              Text(channel.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text('hold to manage',
+                  style: TextStyle(fontSize: 10, color: Colors.grey[400])),
             ],
           ),
         ),
@@ -639,38 +380,61 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
   }
 }
 
-class _SearchResult {
-  final String title;
-  final String sourceName;
-  final String iconPath;
-  final Series? series;
-  final YouTubeVideo? video;
-
-  _SearchResult.series(Series s)
-      : title = s.name,
-        sourceName = 'בני דוד',
-        iconPath = 'assets/icon/david.png',
-        series = s,
-        video = null;
-
-  _SearchResult.video(YouTubeVideo v, String source, String icon)
-      : title = v.title,
-        sourceName = source,
-        iconPath = icon,
-        series = null,
-        video = v;
+class _FallbackIcon extends StatelessWidget {
+  const _FallbackIcon();
+  @override
+  Widget build(BuildContext context) => Center(
+      child: Icon(Icons.subscriptions, color: Theme.of(context).primaryColor, size: 40));
 }
 
-class _SourceButtonData {
-  final String title;
-  final String subtitle;
-  final String iconPath;
-  final VoidCallback onTap;
+ImageProvider channelAvatarImage(String url) {
+  if (url.startsWith('asset:')) return AssetImage(url.substring(6));
+  return NetworkImage(url);
+}
 
-  _SourceButtonData({
-    required this.title,
-    required this.subtitle,
-    required this.iconPath,
-    required this.onTap,
-  });
+class _AddChannelButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final bool atMax;
+  const _AddChannelButton({required this.onTap, required this.atMax});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: atMax ? Colors.grey[300]! : Theme.of(context).primaryColor,
+          width: 1.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: atMax ? null : onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(atMax ? Icons.check_circle_outline : Icons.add_circle_outline,
+                size: 36,
+                color: atMax ? Colors.grey : Theme.of(context).primaryColor),
+            const SizedBox(height: 6),
+            Text(
+              atMax ? 'Max reached' : '+ Add Channel',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: atMax ? Colors.grey : Theme.of(context).primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchResult {
+  final YouTubeVideo video;
+  final SavedChannel channel;
+  const _SearchResult({required this.video, required this.channel});
 }

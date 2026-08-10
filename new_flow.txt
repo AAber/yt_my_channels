@@ -1,0 +1,14 @@
+Let's make a new flow for this app:
+1. Remove the Bnei David vimeo button and all the vimeo code, this is a YT (Youtube) only app
+2. Add a YT channel selection screen before the 8 button selection screen
+2.5. After a fresh install of the app the user will enter the YT channel selection screen
+3. The purpose of the first selection screen is to guide the user in the selection of the 8 YT channels they want in the application 
+4. the user can opt to proceed to the existing button selection screen after selecting 8 or less channels but at least one channel needs to be selected.
+5. The first screen needs to guide the user to selecte their favorite YT channels
+6. The needs to extract the YT ID and image from the YT channels selected by the user in the first screen and generate the matching number of buttons with images for the selected YT channels
+this will make for a complete UX for this flow for the user
+7. After the user has selected one or more YT channels the app will open with the channel button screen (no the new screen which assists in selecting channels for the app)
+8. There should be an option of the button screen to + add more channels which will allow the user to add or favorite channels to the app
+
+Add documentation in the docs folder with the plan and runbook in MD (Markdown) format
+

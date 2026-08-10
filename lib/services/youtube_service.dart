@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import '../States/Keys.dart';
+import '../services/saved_channels_service.dart';
 
 class YouTubeVideo {
   final String id;
@@ -40,6 +41,58 @@ class YouTubeService {
 
   // Od Yosef Hai channel ID
   static const String odYosefHaiChannelId = 'UCQfTTiNEkZ3_HYr9S4zQB0g';
+
+  /// Resolves a YouTube channel URL, handle (@name), or bare channel ID
+  /// into a [SavedChannel]. Returns null if not found or API key missing.
+  Future<SavedChannel?> fetchChannelInfo(String input) async {
+    if (_apiKey.isEmpty || _apiKey.contains('YOUR_')) return null;
+    final id = await _resolveChannelId(input.trim());
+    if (id == null) return null;
+    final url = '$_baseUrl/channels?part=snippet&id=$id&key=$_apiKey';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode != 200) return null;
+    final data = json.decode(response.body);
+    final items = data['items'] as List;
+    if (items.isEmpty) return null;
+    final snippet = items[0]['snippet'] as Map<String, dynamic>;
+    final title = snippet['title'] as String? ?? id;
+    final avatarUrl = (snippet['thumbnails']?['high']?['url'] ??
+        snippet['thumbnails']?['default']?['url'] ?? '') as String;
+    return SavedChannel(id: id, title: title, avatarUrl: avatarUrl);
+  }
+
+  /// Accepts: full channel URL, @handle, or bare UC... ID.
+  Future<String?> _resolveChannelId(String input) async {
+    // Already a channel ID
+    if (RegExp(r'^UC[\w-]{22}$').hasMatch(input)) return input;
+
+    // Extract from URL: /channel/UC...
+    final channelMatch = RegExp(r'youtube\.com/channel/(UC[\w-]{22})').firstMatch(input);
+    if (channelMatch != null) return channelMatch.group(1);
+
+    // Extract handle: @name or youtube.com/@name
+    final handleMatch = RegExp(r'@([\w.]+)').firstMatch(input);
+    final handle = handleMatch?.group(1);
+    if (handle != null) {
+      final url = '$_baseUrl/channels?part=id&forHandle=@$handle&key=$_apiKey';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final items = data['items'] as List;
+        if (items.isNotEmpty) return items[0]['id'] as String;
+      }
+    }
+
+    // Try as custom URL / username search
+    final searchUrl = '$_baseUrl/search?part=snippet&type=channel&q=${Uri.encodeComponent(input)}&maxResults=1&key=$_apiKey';
+    final searchResp = await http.get(Uri.parse(searchUrl));
+    if (searchResp.statusCode == 200) {
+      final data = json.decode(searchResp.body);
+      final items = data['items'] as List;
+      if (items.isNotEmpty) return items[0]['id']?['channelId'] as String?;
+    }
+    return null;
+  }
 
   Future<String> _getUploadsPlaylistId(String channelId) async {
     try {
