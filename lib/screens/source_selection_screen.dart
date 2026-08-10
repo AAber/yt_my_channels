@@ -202,6 +202,7 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
                     ),
                   ),
                 ),
+                onLongPress: () => _openPicker(isAddMode: true),
               );
             }
             // "+" add tile
@@ -337,7 +338,8 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
 class _ChannelButton extends StatelessWidget {
   final SavedChannel channel;
   final VoidCallback onTap;
-  const _ChannelButton({required this.channel, required this.onTap});
+  final VoidCallback onLongPress;
+  const _ChannelButton({required this.channel, required this.onTap, required this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
@@ -346,6 +348,7 @@ class _ChannelButton extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(8),
@@ -367,6 +370,8 @@ class _ChannelButton extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                   maxLines: 2, overflow: TextOverflow.ellipsis),
+              Text('hold to manage',
+                  style: TextStyle(fontSize: 10, color: Colors.grey[400])),
             ],
           ),
         ),
