@@ -251,7 +251,7 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundImage: result.channel.avatarUrl.isNotEmpty
-              ? NetworkImage(result.channel.avatarUrl)
+              ? channelAvatarImage(result.channel.avatarUrl)
               : null,
           child: result.channel.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
         ),
@@ -355,7 +355,9 @@ class _ChannelButton extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: channel.avatarUrl.isNotEmpty
-                      ? Image.network(channel.avatarUrl, fit: BoxFit.cover,
+                      ? Image(
+                          image: channelAvatarImage(channel.avatarUrl),
+                          fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => const _FallbackIcon())
                       : const _FallbackIcon(),
                 ),
@@ -378,6 +380,11 @@ class _FallbackIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
       child: Icon(Icons.subscriptions, color: Theme.of(context).primaryColor, size: 40));
+}
+
+ImageProvider channelAvatarImage(String url) {
+  if (url.startsWith('asset:')) return AssetImage(url.substring(6));
+  return NetworkImage(url);
 }
 
 class _AddChannelButton extends StatelessWidget {

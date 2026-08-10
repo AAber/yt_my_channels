@@ -111,6 +111,7 @@ class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
     final remaining = SavedChannelsService.maxChannels - _staged.length;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(widget.isAddMode ? 'Manage Channels' : 'Choose Your Channels'),
         centerTitle: true,
@@ -237,11 +238,11 @@ class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.subscriptions_outlined, size: 64, color: Colors.grey[300]),
-                        const SizedBox(height: 12),
+                        Icon(Icons.subscriptions_outlined, size: 48, color: Colors.grey[300]),
+                        const SizedBox(height: 8),
                         Text('No channels yet.\nAdd one above to get started.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey[500])),
+                            style: TextStyle(color: Colors.grey[500], fontSize: 13)),
                       ],
                     ),
                   )
