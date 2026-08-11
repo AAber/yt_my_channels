@@ -1,4 +1,4 @@
-package live.isaac770.yt_my_channels
+package live.isaac770.My_YT_Channels
 
 import com.ryanheise.audioservice.AudioServiceActivity
 

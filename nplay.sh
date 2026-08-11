@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Israel Torah App - Play Store Build Script
+# Play Store Build Script
 # This script builds the app bundle and prepares it for Play Store upload
 
 set -e  # Exit on any error
@@ -18,11 +18,11 @@ build_number=$(echo $current_full_version | cut -d'+' -f2)
 next_build_number=$((build_number + 1))
 next_full_version="$version_base+$next_build_number"
 
-BUILD_DIR="~/~/yt_my_channels-appbundle"
+BUILD_DIR="~/yt_my_channels-appbundle"
 KEYSTORE_SOURCE="~/_zync/israel/upload-keystore.jks"
 KEY_PROPS_SOURCE="~/_zync/israel/key.properties"
 
-echo "🚀 Starting Play Store build process for Israel Torah App"
+echo "🚀 Starting Play Store build process"
 echo "Current version: $current_full_version"
 echo "Next version: $next_full_version"
 echo ""
