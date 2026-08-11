@@ -5,7 +5,7 @@
 
 set -e  # Exit on any error
 
-echo "Update the version and leave the build"
+echo "Update the version and the script will increment the build"
 sleep 3
 vi pubspec.yaml
 echo Ready to go? Enter to continue Ctrl-C to cancel...
