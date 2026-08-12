@@ -33,7 +33,7 @@ APP_STORE_SIZES = [
     # iPhone 6.5"  (iPhone 11 Pro Max / 12–14 Plus)
     ("app_store/iphone_6_5",     1242, 2688),
     # iPhone 5.5"  (iPhone 8 Plus)  — legacy, still accepted
-    ("app_store/iphone_5_5",     1242, 2208),
+    ("app_store/iphone_5_5",     1242, 2688),
     # iPad Pro 13" (M4)
     ("app_store/ipad_pro_13",    2064, 2752),
     # iPad Pro 11"

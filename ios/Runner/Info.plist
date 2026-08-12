@@ -66,5 +66,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app does not use the microphone. This key is required by the App Store because included SDKs reference microphone APIs.</string>
 </dict>
 </plist>
