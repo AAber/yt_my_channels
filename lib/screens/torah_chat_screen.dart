@@ -95,53 +95,38 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   }
 
   Future<void> _addChannel(ChannelSuggestion suggestion) async {
-    developer.log('Attempting to add channel: ${suggestion.title} (${suggestion.channelId})');
-    
-    if (SavedChannelsService.instance.channels.any((c) => c.id == suggestion.channelId)) {
-      developer.log('Channel already exists in saved list');
-      _showSnack('"${suggestion.title}" is already in your list.');
+    final ytService = YouTubeService();
+
+    // Resolve the real channel via YouTube search
+    developer.log('ChannelFinder: resolving "${suggestion.searchQuery}"');
+    SavedChannel? channel;
+    try {
+      channel = await ytService.fetchChannelInfo(suggestion.searchQuery);
+      developer.log('ChannelFinder: resolved → ${channel?.id} "${channel?.title}"');
+    } catch (e) {
+      developer.log('ChannelFinder: fetchChannelInfo threw: $e');
+    }
+
+    if (channel == null) {
+      developer.log('ChannelFinder: YouTube search returned null for "${suggestion.searchQuery}"');
+      if (mounted) _showSnack('Could not find "${suggestion.title}" on YouTube.');
+      return;
+    }
+
+    if (SavedChannelsService.instance.channels.any((c) => c.id == channel!.id)) {
+      if (mounted) _showSnack('"${channel.title}" is already in your list.');
       return;
     }
     if (SavedChannelsService.instance.channels.length >= SavedChannelsService.maxChannels) {
-      developer.log('Max channels reached');
-      _showSnack('Maximum ${SavedChannelsService.maxChannels} channels reached.');
+      if (mounted) _showSnack('Maximum ${SavedChannelsService.maxChannels} channels reached.');
       return;
     }
 
-    _showSnack('Looking up "${suggestion.title}"…');
-
-    try {
-      final ytService = YouTubeService();
-      developer.log('Fetching channel info from YouTube API...');
-      final channel = await ytService.fetchChannelInfo(suggestion.channelId);
-      
-      if (channel == null) {
-        // Fallback: save with the AI-provided title, no avatar
-        developer.log('Channel not found on YouTube, using AI suggestion: ${suggestion.channelId}');
-        final fallbackChannel = SavedChannel(
-          id: suggestion.channelId,
-          title: suggestion.title,
-          avatarUrl: '',
-        );
-        developer.log('Adding fallback channel: ${fallbackChannel.title}');
-        await SavedChannelsService.instance.add(fallbackChannel);
-        developer.log('Fallback channel added successfully');
-        if (mounted) {
-          _showSnack('"${suggestion.title}" added (AI suggestion) ✓');
-          setState(() {}); // refresh button states
-        }
-      } else {
-        developer.log('Channel found on YouTube: ${channel.title}');
-        await SavedChannelsService.instance.add(channel);
-        developer.log('YouTube channel added successfully');
-        if (mounted) {
-          _showSnack('"${suggestion.title}" added! ✓');
-          setState(() {}); // refresh button states
-        }
-      }
-    } catch (e) {
-      developer.log('Error adding channel: $e', error: e);
-      if (mounted) _showSnack('Could not add channel. Check your connection.');
+    await SavedChannelsService.instance.add(channel);
+    developer.log('ChannelFinder: added "${channel.title}" (${channel.id})');
+    if (mounted) {
+      _showSnack('"${channel.title}" added! ✓');
+      setState(() {});
     }
   }
 
@@ -257,8 +242,8 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   }
 
   Widget _buildSuggestionCard(ChannelSuggestion s) {
-    final alreadyAdded = SavedChannelsService.instance.channels.any((c) => c.id == s.channelId);
-    developer.log('Building suggestion card for: ${s.title}, alreadyAdded: $alreadyAdded');
+    final alreadyAdded = SavedChannelsService.instance.channels
+        .any((c) => c.title.toLowerCase() == s.title.toLowerCase());
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(

@@ -349,7 +349,7 @@ Mention top results by title and teacher. Never invent sources.''';
     if (parsed != null && parsed.containsKey('suggestions')) {
       final list = parsed['suggestions'] as List;
       final suggestions = list.map((s) => ChannelSuggestion(
-        channelId: s['channel_id'] as String,
+        searchQuery: (s['search_query'] as String?) ?? (s['title'] as String),
         title: s['title'] as String,
         reason: s['reason'] as String,
       )).toList();
@@ -368,13 +368,13 @@ Rules:
 - Ask ONE question at a time. Keep questions short and friendly.
 - After the user has answered 3 questions, respond with ONLY valid JSON — no other text:
   {"suggestions": [
-    {"channel_id": "UC...", "title": "Channel Name", "reason": "one sentence why"},
-    {"channel_id": "UC...", "title": "Channel Name", "reason": "one sentence why"},
-    {"channel_id": "UC...", "title": "Channel Name", "reason": "one sentence why"}
+    {"search_query": "Official channel name to search on YouTube", "title": "Channel Name", "reason": "one sentence why"},
+    {"search_query": "Official channel name to search on YouTube", "title": "Channel Name", "reason": "one sentence why"},
+    {"search_query": "Official channel name to search on YouTube", "title": "Channel Name", "reason": "one sentence why"}
   ]}
-- Use real YouTube channel IDs (UC... format, 24 chars).
+- Use the most specific search query that would find the official channel (e.g. "Pink Floyd Official", "Taylor Swift VEVO").
+- Do NOT invent or guess YouTube channel IDs — omit the channel_id field entirely.
 - Base suggestions on the user's answers. Be specific and helpful.
-- Do NOT suggest channels you are not confident exist on YouTube.
 - Questions should cover: genre/style, mood/vibe, and a specific preference (artist, language, era, etc.).
 - Respond in the same language the user uses.''';
 }
@@ -400,12 +400,12 @@ class ChannelFinderResponse {
 }
 
 class ChannelSuggestion {
-  final String channelId;
+  final String searchQuery;
   final String title;
   final String reason;
 
   const ChannelSuggestion({
-    required this.channelId,
+    required this.searchQuery,
     required this.title,
     required this.reason,
   });
