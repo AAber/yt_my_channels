@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SavedChannel {
   final String id;
   final String title;
-  final String avatarUrl; // network URL — fetched from YouTube
+  final String avatarUrl;
 
   const SavedChannel({
     required this.id,
@@ -28,7 +29,7 @@ class SavedChannel {
   int get hashCode => id.hashCode;
 }
 
-class SavedChannelsService {
+class SavedChannelsService extends ChangeNotifier {
   static const _key = 'saved_yt_channels';
   static const int maxChannels = 8;
 
@@ -55,23 +56,16 @@ class SavedChannelsService {
   }
 
   Future<void> add(SavedChannel channel) async {
-    developer.log('SavedChannelsService.add() called for: ${channel.title} (${channel.id})');
-    if (_channels.any((c) => c.id == channel.id)) {
-      developer.log('Channel already exists in list, skipping add');
-      return;
-    }
-    if (_channels.length >= maxChannels) {
-      developer.log('Max channels reached, skipping add');
-      return;
-    }
+    if (_channels.any((c) => c.id == channel.id)) return;
+    if (_channels.length >= maxChannels) return;
     _channels.add(channel);
-    developer.log('Channel added to local list, saving...');
+    notifyListeners();
     await _save();
-    developer.log('Channel saved successfully');
   }
 
   Future<void> remove(String channelId) async {
     _channels.removeWhere((c) => c.id == channelId);
+    notifyListeners();
     await _save();
   }
 

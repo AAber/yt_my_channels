@@ -93,8 +93,8 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<LanguageProvider>(
-      builder: (context, languageProvider, _) {
+    return Consumer2<LanguageProvider, SavedChannelsService>(
+      builder: (context, languageProvider, savedChannels, _) {
         final l10n = AppLocalizations.of(context);
         final isHebrew = languageProvider.locale.languageCode == 'he';
 

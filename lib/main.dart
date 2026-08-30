@@ -39,8 +39,11 @@ Future<void> main() async {
 
   developer.log('▶ runApp()', name: 'APP_INIT');
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => LanguageProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider.value(value: SavedChannelsService.instance),
+      ],
       child: const MyYTApp(),
     ),
   );

@@ -1,1 +1,7 @@
+The channels are added now but I need to refresh the UI for them to show and the don't have the image the app doesn't pull
+  the channels default image and the new channels don't work see this error log: I/flutter (11009):       "channel_id":
+  "UCJ6XbJzY6Y6Y6Y6Y6Y6Y6", make small changes so I can test each fix
+
+
+
 fix the ai code in this repo like in the repo ~/israel see commit 011d43e9fe3c9d6be58ddceff73593cc313996df and then refactor the logic of the ai to assist the user in finding a YouTube channel by asking three questions and based on the answers suggest three youtube channels when the user selets the answer the YT channel will be added to the list of channels vieweable from this app
