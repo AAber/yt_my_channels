@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:torah_ai_assistant/torah_ai_assistant.dart';
 import '../services/saved_channels_service.dart';
 import '../services/youtube_service.dart';
 import '../States/Keys.dart';
 import 'dart:developer' as developer;
+
+const _kSessionKey = 'channel_finder_session';
 
 class TorahChatScreen extends StatefulWidget {
   const TorahChatScreen({super.key});
@@ -31,10 +35,8 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   @override
   void initState() {
     super.initState();
-    developer.log('TorahChatScreen initState() called');
     _groq = GroqClient(apiKey: groqApiKey);
-    developer.log('Current saved channels: ${SavedChannelsService.instance.channels.length}');
-    _kickOff();
+    _loadSession();
   }
 
   @override
@@ -44,6 +46,63 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
     super.dispose();
   }
 
+  Future<void> _loadSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_kSessionKey);
+      if (raw != null) {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        final display = (data['display'] as List)
+            .map((e) => Map<String, String>.from(e as Map))
+            .toList();
+        final conversation = (data['conversation'] as List)
+            .map((e) => Map<String, String>.from(e as Map))
+            .toList();
+        final done = data['done'] as bool? ?? false;
+        final suggestions = done
+            ? (data['suggestions'] as List)
+                .map((s) => ChannelSuggestion(
+                      searchQuery: s['searchQuery'] as String,
+                      title: s['title'] as String,
+                      reason: s['reason'] as String,
+                    ))
+                .toList()
+            : <ChannelSuggestion>[];
+        if (display.isNotEmpty) {
+          setState(() {
+            _display.addAll(display);
+            _conversation.addAll(conversation);
+            _done = done;
+            _suggestions = suggestions;
+          });
+          developer.log('Session restored: ${display.length} messages, done=$done');
+          return;
+        }
+      }
+    } catch (e) {
+      developer.log('Session load failed: $e');
+    }
+    _kickOff();
+  }
+
+  Future<void> _saveSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kSessionKey, jsonEncode({
+        'display': _display,
+        'conversation': _conversation,
+        'done': _done,
+        'suggestions': _suggestions.map((s) => {
+          'searchQuery': s.searchQuery,
+          'title': s.title,
+          'reason': s.reason,
+        }).toList(),
+      }));
+    } catch (e) {
+      developer.log('Session save failed: $e');
+    }
+  }
+
   Future<void> _kickOff() async {
     setState(() => _loading = true);
     final resp = await _groq.channelFinderStep(_conversation);
@@ -51,18 +110,15 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   }
 
   void _handleResponse(ChannelFinderResponse resp) {
-    developer.log('Handling response, type: ${resp.type}');
     if (resp.type == ChannelFinderResponseType.suggestions) {
-      developer.log('Received ${resp.suggestions!.length} suggestions');
       setState(() {
         _suggestions = resp.suggestions!;
         _done = true;
         _loading = false;
       });
-      developer.log('Updated state with suggestions, done: $_done');
       _addDisplay('assistant', 'Here are 3 channels I think you\'ll love 🎵');
+      _saveSession();
     } else {
-      developer.log('Received question: ${resp.question}');
       _addDisplay('assistant', resp.question!);
       setState(() => _loading = false);
     }
@@ -71,6 +127,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
 
   void _addDisplay(String role, String text) {
     setState(() => _display.add({'role': role, 'text': text}));
+    _saveSession();
   }
 
   Future<void> _send() async {
@@ -150,6 +207,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   }
 
   void _restart() {
+    SharedPreferences.getInstance().then((p) => p.remove(_kSessionKey));
     setState(() {
       _conversation.clear();
       _display.clear();
