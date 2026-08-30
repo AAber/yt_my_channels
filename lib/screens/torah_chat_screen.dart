@@ -3,6 +3,7 @@ import 'package:torah_ai_assistant/torah_ai_assistant.dart';
 import '../services/saved_channels_service.dart';
 import '../services/youtube_service.dart';
 import '../States/Keys.dart';
+import 'dart:developer' as developer;
 
 class TorahChatScreen extends StatefulWidget {
   const TorahChatScreen({super.key});
@@ -30,7 +31,9 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   @override
   void initState() {
     super.initState();
+    developer.log('TorahChatScreen initState() called');
     _groq = GroqClient(apiKey: groqApiKey);
+    developer.log('Current saved channels: ${SavedChannelsService.instance.channels.length}');
     _kickOff();
   }
 
@@ -48,14 +51,18 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   }
 
   void _handleResponse(ChannelFinderResponse resp) {
+    developer.log('Handling response, type: ${resp.type}');
     if (resp.type == ChannelFinderResponseType.suggestions) {
+      developer.log('Received ${resp.suggestions!.length} suggestions');
       setState(() {
         _suggestions = resp.suggestions!;
         _done = true;
         _loading = false;
       });
+      developer.log('Updated state with suggestions, done: $_done');
       _addDisplay('assistant', 'Here are 3 channels I think you\'ll love 🎵');
     } else {
+      developer.log('Received question: ${resp.question}');
       _addDisplay('assistant', resp.question!);
       setState(() => _loading = false);
     }
@@ -88,11 +95,15 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   }
 
   Future<void> _addChannel(ChannelSuggestion suggestion) async {
+    developer.log('Attempting to add channel: ${suggestion.title} (${suggestion.channelId})');
+    
     if (SavedChannelsService.instance.channels.any((c) => c.id == suggestion.channelId)) {
+      developer.log('Channel already exists in saved list');
       _showSnack('"${suggestion.title}" is already in your list.');
       return;
     }
     if (SavedChannelsService.instance.channels.length >= SavedChannelsService.maxChannels) {
+      developer.log('Max channels reached');
       _showSnack('Maximum ${SavedChannelsService.maxChannels} channels reached.');
       return;
     }
@@ -101,22 +112,35 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
 
     try {
       final ytService = YouTubeService();
+      developer.log('Fetching channel info from YouTube API...');
       final channel = await ytService.fetchChannelInfo(suggestion.channelId);
+      
       if (channel == null) {
         // Fallback: save with the AI-provided title, no avatar
-        await SavedChannelsService.instance.add(SavedChannel(
+        developer.log('Channel not found on YouTube, using AI suggestion: ${suggestion.channelId}');
+        final fallbackChannel = SavedChannel(
           id: suggestion.channelId,
           title: suggestion.title,
           avatarUrl: '',
-        ));
+        );
+        developer.log('Adding fallback channel: ${fallbackChannel.title}');
+        await SavedChannelsService.instance.add(fallbackChannel);
+        developer.log('Fallback channel added successfully');
+        if (mounted) {
+          _showSnack('"${suggestion.title}" added (AI suggestion) ✓');
+          setState(() {}); // refresh button states
+        }
       } else {
+        developer.log('Channel found on YouTube: ${channel.title}');
         await SavedChannelsService.instance.add(channel);
-      }
-      if (mounted) {
-        _showSnack('"${suggestion.title}" added! ✓');
-        setState(() {}); // refresh button states
+        developer.log('YouTube channel added successfully');
+        if (mounted) {
+          _showSnack('"${suggestion.title}" added! ✓');
+          setState(() {}); // refresh button states
+        }
       }
     } catch (e) {
+      developer.log('Error adding channel: $e', error: e);
       if (mounted) _showSnack('Could not add channel. Check your connection.');
     }
   }
@@ -234,6 +258,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
 
   Widget _buildSuggestionCard(ChannelSuggestion s) {
     final alreadyAdded = SavedChannelsService.instance.channels.any((c) => c.id == s.channelId);
+    developer.log('Building suggestion card for: ${s.title}, alreadyAdded: $alreadyAdded');
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: ListTile(
@@ -246,7 +271,10 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
         trailing: alreadyAdded
             ? const Icon(Icons.check_circle, color: Colors.green)
             : FilledButton(
-                onPressed: () => _addChannel(s),
+                onPressed: () {
+                  developer.log('Add button clicked for: ${s.title}');
+                  _addChannel(s);
+                },
                 style: FilledButton.styleFrom(backgroundColor: Colors.orange[600]),
                 child: const Text('Add'),
               ),

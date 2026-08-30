@@ -1,0 +1,32 @@
+ less intense production style."
+I/flutter ( 6265):     }
+I/flutter ( 6265):   ]
+I/flutter ( 6265): }
+I/flutter ( 6265): [ChannelFinder] Raw: {
+I/flutter ( 6265):   "suggestions": [
+I/flutter ( 6265):     {
+I/flutter ( 6265):       "channel_id": "UCM27u5o4n3B8q5y7z9x0w1a",
+I/flutter ( 6265):       "title": "Classic Rock 70s",
+I/flutter ( 6265):       "reason": "This channel curates light and melodic classic rock from the 70s, fitting your preference for a relaxed vibe without specific artist constraints."
+I/flutter ( 6265):     },
+I/flutter ( 6265):     {
+I/flutter ( 6265):       "channel_id": "UC8XoVq5y7z9x0w1a2b3c4d5",
+I/flutter ( 6265):       "title": "Easy Listening Rock",
+I/flutter ( 6265):       "reason": "Focusing on softer, acoustic, and melodic tracks from the classic era, this channel provides a gentle listening experience."
+I/flutter ( 6265):     },
+I/flutter ( 6265):     {
+I/flutter ( 6265):       "channel_id": "UC1a2b3c4d5e6f7g8h9i0j1k",
+I/flutter ( 6265):       "title": "Rock Relaxation",
+I/flutter ( 6265):       "reason": "Designed for background listening, this channel features classic rock songs with a lighter, less intense production style."
+I/flutter ( 6265):     }
+I/flutter ( 6265):   ]
+I/flutter ( 6265): }
+I/BLASTBufferQueue_Java( 6265): update, w= 1080 h= 2340 mName = ViewRootImpl@5480416[MainActivity] mNativeObject= 0xb400007c85d74380 sc.mNativeObject= 0xb400007da5b62500 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3004 android.view.ViewRootImpl.relayoutWindow:10048 android.view.ViewRootImpl.performTraversals:4092 android.view.ViewRootImpl.doTraversal:3275 android.view.ViewRootImpl$TraversalRunnable.run:11256 android.view.Choreographer$CallbackRecord.run:1650
+I/ViewRootImpl@5480416[MainActivity]( 6265): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=true req=(1080,2340)0 dur=1 res=0x0 s={true 0xb400007d44349000} ch=false seqId=0
+D/FlutterJNI( 6265): Sending viewport metrics to the engine.
+I/ViewRootImpl@5480416[MainActivity]( 6265): updateBoundsLayer: t=android.view.SurfaceControl$Transaction@7bd0541 sc=Surface(name=Bounds for - live.isaac770.My_YT_Channels.debug/live.isaac770.My_YT_Channels.MainActivity@0)/@0x45b3ae6 frame=136
+I/ViewRootImpl@5480416[MainActivity]( 6265): registerCallbackForPendingTransactions
+I/ViewRootImpl@5480416[MainActivity]( 6265): mWNT: t=0xb400007c80c6d200 mBlastBufferQueue=0xb400007c85d74380 fn= 136 caller= android.view.ViewRootImpl$6.onFrameDraw:5582 android.view.ViewRootImpl$2.onFrameDraw:2131 android.view.ThreadedRenderer$1.onFrameDraw:788
+I/BLASTBufferQueue_Java( 6265): applyPendingTransactions, mName= ViewRootImpl@5480416[MainActivity] mNativeObject= 0xb400007c85d74380 frameNumber= 136 caller= android.view.ViewRootImpl$6.lambda$onFrameDraw$0:5596 android.view.ViewRootImpl$6.$r8$lambda$9ThyGB6fC3mub7oMSjoAoWLhwMM:0 android.view.ViewRootImpl$6$$ExternalSyntheticLambda0.onFrameCommit:4 android.view.ThreadedRenderer$1.lambda$onFrameDraw$0:800 android.view.ThreadedRenderer$1$$ExternalSyntheticLambda0.onFrameCommit:2 <bottom of call stack>
+I/ViewRootImpl@5480416[MainActivity]( 6265): registerCallbackForPendingTransactions
+

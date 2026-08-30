@@ -45,29 +45,46 @@ class YouTubeService {
   /// Resolves a YouTube channel URL, handle (@name), or bare channel ID
   /// into a [SavedChannel]. Returns null if not found or API key missing.
   Future<SavedChannel?> fetchChannelInfo(String input) async {
-    if (_apiKey.isEmpty || _apiKey.contains('YOUR_')) return null;
+    developer.log('YouTubeService.fetchChannelInfo() called with input: $input');
+    if (_apiKey.isEmpty || _apiKey.contains('YOUR_')) {
+      developer.log('API key is missing or invalid');
+      return null;
+    }
     final id = await _resolveChannelId(input.trim());
-    if (id == null) return null;
+    if (id == null) {
+      developer.log('Could not resolve channel ID from input: $input');
+      return null;
+    }
+    developer.log('Resolved channel ID: $id');
     final url = '$_baseUrl/channels?part=snippet&id=$id&key=$_apiKey';
+    developer.log('Fetching from YouTube API: $url');
     final response = await http.get(Uri.parse(url));
-    if (response.statusCode != 200) return null;
+    developer.log('YouTube API response status: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      developer.log('YouTube API request failed with status: ${response.statusCode}');
+      return null;
+    }
     final data = json.decode(response.body);
     final items = data['items'] as List;
-    if (items.isEmpty) return null;
+    if (items.isEmpty) {
+      developer.log('YouTube API returned empty items list for channel ID: $id');
+      return null;
+    }
     final snippet = items[0]['snippet'] as Map<String, dynamic>;
     final title = snippet['title'] as String? ?? id;
     final avatarUrl = (snippet['thumbnails']?['high']?['url'] ??
         snippet['thumbnails']?['default']?['url'] ?? '') as String;
+    developer.log('Successfully fetched channel: $title');
     return SavedChannel(id: id, title: title, avatarUrl: avatarUrl);
   }
 
   /// Accepts: full channel URL, @handle, or bare UC... ID.
   Future<String?> _resolveChannelId(String input) async {
-    // Already a channel ID
-    if (RegExp(r'^UC[\w-]{22}$').hasMatch(input)) return input;
+    // Already a channel ID (YouTube channel IDs are UC followed by 22 characters, but we'll be more flexible)
+    if (RegExp(r'^UC[\w-]{10,30}$').hasMatch(input)) return input;
 
     // Extract from URL: /channel/UC...
-    final channelMatch = RegExp(r'youtube\.com/channel/(UC[\w-]{22})').firstMatch(input);
+    final channelMatch = RegExp(r'youtube\.com/channel/(UC[\w-]{10,30})').firstMatch(input);
     if (channelMatch != null) return channelMatch.group(1);
 
     // Extract handle: @name or youtube.com/@name

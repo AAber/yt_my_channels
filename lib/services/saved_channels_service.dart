@@ -55,10 +55,19 @@ class SavedChannelsService {
   }
 
   Future<void> add(SavedChannel channel) async {
-    if (_channels.any((c) => c.id == channel.id)) return;
-    if (_channels.length >= maxChannels) return;
+    developer.log('SavedChannelsService.add() called for: ${channel.title} (${channel.id})');
+    if (_channels.any((c) => c.id == channel.id)) {
+      developer.log('Channel already exists in list, skipping add');
+      return;
+    }
+    if (_channels.length >= maxChannels) {
+      developer.log('Max channels reached, skipping add');
+      return;
+    }
     _channels.add(channel);
+    developer.log('Channel added to local list, saving...');
     await _save();
+    developer.log('Channel saved successfully');
   }
 
   Future<void> remove(String channelId) async {
