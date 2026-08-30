@@ -13,6 +13,7 @@ import 'channel_picker_screen.dart';
 import 'youtube_home_screen.dart';
 import 'youtube_player_screen.dart';
 import 'torah_chat_screen.dart';
+import 'shuffle_play_screen.dart';
 
 class SourceSelectionScreen extends StatefulWidget {
   const SourceSelectionScreen({super.key});
@@ -111,6 +112,14 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             actions: [
               if (!isHebrew)
                 IconButton(icon: const Icon(Icons.history), onPressed: _drawerController.open),
+              IconButton(
+                icon: const Icon(Icons.shuffle),
+                tooltip: 'Shuffle play all',
+                onPressed: _channels.isEmpty ? null : () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ShufflePlayScreen()),
+                ),
+              ),
               IconButton(icon: const Icon(Icons.email_outlined), onPressed: _sendFeedback),
               IconButton(
                 icon: const Icon(Icons.language),
