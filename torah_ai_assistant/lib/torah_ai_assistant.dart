@@ -6,7 +6,9 @@ export 'agent/torah_agent.dart';
 
 // LLM
 export 'llm/agent_config.dart';
-export 'llm/groq_client.dart';
+export 'llm/groq_client.dart'
+    show GroqClient, GroqRateLimitException, ChannelFinderResponse,
+        ChannelFinderResponseType, ChannelSuggestion;
 
 // Sources
 export 'sources/data_source.dart';

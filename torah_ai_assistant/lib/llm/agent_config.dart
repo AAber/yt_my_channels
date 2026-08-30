@@ -11,7 +11,7 @@ class AgentConfig {
 
   AgentConfig({
     required this.groqApiKey,
-    this.model = 'llama-3.3-70b-versatile',
+    this.model = 'qwen/qwen3-32b',
     this.maxTokens = 1000,
     this.temperature = 0.7,
     this.timeout = const Duration(seconds: 30),
