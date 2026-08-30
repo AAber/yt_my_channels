@@ -163,35 +163,35 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orange[600],
-        title: const Text('Channel Finder AI'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Start over',
-            onPressed: _restart,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              itemCount: _display.length + (_loading ? 1 : 0) + (_done ? 1 : 0),
-              itemBuilder: (context, i) {
-                if (i < _display.length) return _buildBubble(_display[i]);
-                if (_loading) return _buildTyping();
-                if (_done) return _buildSuggestions();
-                return const SizedBox.shrink();
-              },
+        appBar: AppBar(
+          backgroundColor: Colors.orange[600],
+          title: const Text('Channel Finder AI'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Start over',
+              onPressed: _restart,
             ),
-          ),
-          if (!_done) _buildInput(),
-        ],
-      ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(12),
+                itemCount: _display.length + (_loading ? 1 : 0) + (_done ? 1 : 0),
+                itemBuilder: (context, i) {
+                  if (i < _display.length) return _buildBubble(_display[i]);
+                  if (_loading) return _buildTyping();
+                  if (_done) return _buildSuggestions();
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+            if (!_done) _buildInput(),
+          ],
+        ),
     );
   }
 
