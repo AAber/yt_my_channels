@@ -74,7 +74,7 @@ class MyYTApp extends StatelessWidget {
           locale: languageProvider.locale,
           builder: (context, child) {
             return Directionality(
-              textDirection: languageProvider.locale.languageCode == 'he'
+              textDirection: languageProvider.locale.languageCode == 'en'
                   ? TextDirection.rtl
                   : TextDirection.ltr,
               child: child!,
