@@ -72,29 +72,6 @@ Used by the Torah AI Assistant chat feature.
 
 ---
 
-### Vimeo Bearer Token (`vimeoBearerToken`)
-
-Used to resolve progressive MP4 URLs for Vimeo-hosted lessons.
-
-1. Go to [developer.vimeo.com](https://developer.vimeo.com/)
-2. Log in and go to **My Apps → New App**
-3. Under **Authentication**, generate a **Personal Access Token**
-4. Grant the token the `video_files` and `public` scopes
-5. Copy the token into `vimeoBearerToken`
-
----
-
-### Google OAuth (`googleClientId` / `googleServerClientId`)
-
-Only needed if Google Sign-In is enabled. Leave as placeholder if unused.
-
-1. Go to [console.cloud.google.com](https://console.cloud.google.com/)
-2. **APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID**
-3. Create one for **Android/iOS** (client ID) and one for **Web** (server client ID)
-4. Copy into `googleClientId` and `googleServerClientId`
-
----
-
 ## Running the app
 
 ```bash
