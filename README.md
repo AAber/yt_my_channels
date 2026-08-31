@@ -1,4 +1,4 @@
-# yt_my_channels
+# My YT Channels
 
 A Flutter app for browsing YouTube channels and media content.
 

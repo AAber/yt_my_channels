@@ -1,7 +1,7 @@
 name: yt_my_channels
 description: A Flutter app for viewing my favorite YotTube channels
 publish_to: 'none'
-version: 0.0.3+2
+version: 0.0.4+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
