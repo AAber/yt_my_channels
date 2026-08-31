@@ -151,7 +151,7 @@ class _HistoryDrawer extends StatelessWidget {
                   const Icon(Icons.history, size: 22),
                   const SizedBox(width: 8),
                   Text(
-                    isHebrew ? 'היסטוריית צפייה' : 'Watch History',
+                    isHebrew ? 'Watch History' : 'Watch History',
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                   ),

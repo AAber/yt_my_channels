@@ -157,19 +157,19 @@ class TorahAgent {
       print('💬 Generating AI response...');
       
       // Generate warm response using Groq
-      final response = await _groqClient.generateResponse(
+      final (responseText, _) = await _groqClient.generateResponse(
         userMessage,
         topResults.map((r) => r.toJson()).toList(),
         calendarContext: calendarContext,
       );
       
-      print('💬 Final response: $response');
-      print('💬 Response length: ${response.length} chars');
-      print('💬 Response bytes: ${utf8.encode(response).length} bytes');
+      print('💬 Final response: $responseText');
+      print('💬 Response length: ${responseText.length} chars');
+      print('💬 Response bytes: ${utf8.encode(responseText).length} bytes');
       
       // Validate Hebrew content
-      String finalResponse = response;
-      if (!_containsValidHebrew(response) && topResults.isNotEmpty) {
+      String finalResponse = responseText;
+      if (!_containsValidHebrew(responseText) && topResults.isNotEmpty) {
         print('💬 WARNING: Response may have encoding issues, using fallback');
         finalResponse = _createFallbackResponse(
           topResults,

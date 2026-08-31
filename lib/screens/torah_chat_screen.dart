@@ -1,11 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:torah_ai_assistant/torah_ai_assistant.dart';
-import '../models/lesson.dart';
-import '../screens/player_screen.dart';
-import '../screens/youtube_player_screen.dart';
-import '../services/vimeo_service.dart';
+import '../services/saved_channels_service.dart';
 import '../services/youtube_service.dart';
 import '../States/Keys.dart';
+import 'dart:developer' as developer;
+
+const _kSessionKey = 'channel_finder_session';
 
 class TorahChatScreen extends StatefulWidget {
   const TorahChatScreen({super.key});
@@ -15,210 +17,393 @@ class TorahChatScreen extends StatefulWidget {
 }
 
 class _TorahChatScreenState extends State<TorahChatScreen> {
-  late TorahAgent _agent;
-  bool _isLoading = true;
+  late final GroqClient _groq;
+  final _controller = TextEditingController();
+  final _scrollKey = GlobalKey<AnimatedListState>();
+  final _scrollController = ScrollController();
 
-  static const _youtubeChannels = [
-    YouTubeChannel('UCN9HPn2fq-NL8M5_kp4RWZQ', 'Sia',           'assets/icon/sia.png'),
-    YouTubeChannel('UCqECaJ8Gagnn7YCbPEzWH6g', 'Taylor Swift',  'assets/icon/taylor.png'),
-    YouTubeChannel('UC0C-w0YjGpqDXGB8IHb662A', 'Ed Sheeran',    'assets/icon/ed.png'),
-    YouTubeChannel('UC9CoOnJkIBMdeijd9qYoT_g', 'Ariana Grande', 'assets/icon/ariana.png'),
-    YouTubeChannel('UCuHzBCaKmtaLcRAOoazhCPA', 'Beyoncé',       'assets/icon/beyonce.png'),
-    YouTubeChannel('UCNTQH0uJzryQB4rRLGlv-Ww', 'Drake',         'assets/icon/drake.png'),
-    YouTubeChannel('UCiGm_E4ZwYSHV3bcW1pnSeQ', 'Billie Eilish', 'assets/icon/billie.png'),
-  ];
+  // conversation sent to the LLM: alternating user/assistant turns
+  final List<Map<String, String>> _conversation = [];
+  // display messages: {role, text}
+  final List<Map<String, String>> _display = [];
+
+  bool _loading = false;
+  bool _done = false; // suggestions received
+  List<ChannelSuggestion> _suggestions = [];
+  int _questionCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _initAgent();
+    _groq = GroqClient(apiKey: groqApiKey);
+    _loadSession();
   }
 
-  Future<void> _initAgent() async {
-    _agent = TorahAgent(
-      config: AgentConfig(groqApiKey: groqApiKey),
-      sources: [
-        MeirApiAdapter(),
-        DavidApiAdapter(),
-        YouTubeDataSource(
-          apiKey: Keys.googleApiKey,
-          channels: _youtubeChannels,
-        ),
-      ],
-    );
-    await _agent.loadSession();
-    setState(() => _isLoading = false);
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
-  Future<void> _onSourceTap(SourceResult result) async {
-    final meta = result.metadata;
-    debugPrint('CHAT_TAP 🔄 source=${result.source} title="${result.title}" meta=$meta');
+  Future<void> _loadSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_kSessionKey);
+      if (raw != null) {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        final display = (data['display'] as List)
+            .map((e) => Map<String, String>.from(e as Map))
+            .toList();
+        final conversation = (data['conversation'] as List)
+            .map((e) => Map<String, String>.from(e as Map))
+            .toList();
+        final done = data['done'] as bool? ?? false;
+        final suggestions = done
+            ? (data['suggestions'] as List)
+                .map((s) => ChannelSuggestion(
+                      searchQuery: s['searchQuery'] as String,
+                      title: s['title'] as String,
+                      reason: s['reason'] as String,
+                    ))
+                .toList()
+            : <ChannelSuggestion>[];
+        if (display.isNotEmpty) {
+          setState(() {
+            _display.addAll(display);
+            _conversation.addAll(conversation);
+            _done = done;
+            _suggestions = suggestions;
+          });
+          developer.log('Session restored: ${display.length} messages, done=$done');
+          return;
+        }
+      }
+    } catch (e) {
+      developer.log('Session load failed: $e');
+    }
+    _kickOff();
+  }
 
-    if (result.source == 'youtube') {
-      final videoId = meta['video_id']?.toString() ?? '';
-      final channelTitle = meta['channel_title']?.toString() ?? '';
-      if (videoId.isEmpty) {
-        debugPrint('🔴 CHAT_TAP youtube: NO video_id — meta=$meta');
-        return;
-      }
-      debugPrint('▶️ CHAT_TAP youtube: videoId=$videoId channel=$channelTitle');
-      final video = YouTubeVideo(
-        id: videoId,
-        title: result.title,
-        description: '',
-        thumbnailUrl: meta['thumbnail']?.toString() ?? '',
-        publishedAt: DateTime.tryParse(
-                meta['published_at']?.toString() ?? '') ??
-            DateTime.now(),
-      );
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => YouTubePlayerScreen(
-              video: video,
-              channelTitle: channelTitle,
-            ),
-          ),
-        );
-      }
-    } else if (result.source == 'meir_api') {
-      await _openMeirLesson(meta, result.title);
-    } else if (result.source == 'david_api') {
-      // DavidApiAdapter metadata keys: lesson_id, lesson_slug, series_id,
-      // mp4_url, mp3_url, url — does NOT include vimeo_url or name.
-      final mp4 = meta['mp4_url']?.toString();
-      final mp3 = meta['mp3_url']?.toString();
-      debugPrint('🎬 CHAT_TAP david_api: mp4=$mp4 mp3=$mp3 title="${result.title}"');
-      if ((mp4 == null || mp4.isEmpty) && (mp3 == null || mp3.isEmpty)) {
-        debugPrint('🔴 CHAT_TAP david_api: NO MEDIA — mp4=$mp4 mp3=$mp3 meta=$meta');
-        _showError('לא נמצא קישור מדיה לשיעור זה');
-        return;
-      }
-      final lesson = Lesson(
-        id: meta['lesson_id']?.toString() ?? '',
-        seriesId: meta['series_id']?.toString() ?? '',
-        name: result.title,
-        url: meta['url']?.toString() ?? '',
-        slug: meta['lesson_slug']?.toString() ?? '',
-        mp4Url: mp4?.isNotEmpty == true ? mp4 : null,
-        mp3Url: mp3?.isNotEmpty == true ? mp3 : null,
-        sourceId: 'bneidavid',
-      );
-      debugPrint('✅ CHAT_TAP david_api: opening PlayerScreen mp4=${lesson.mp4Url} mp3=${lesson.mp3Url}');
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => PlayerScreen(lesson: lesson)),
-        );
-      }
+  Future<void> _saveSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kSessionKey, jsonEncode({
+        'display': _display,
+        'conversation': _conversation,
+        'done': _done,
+        'suggestions': _suggestions.map((s) => {
+          'searchQuery': s.searchQuery,
+          'title': s.title,
+          'reason': s.reason,
+        }).toList(),
+      }));
+    } catch (e) {
+      developer.log('Session save failed: $e');
+    }
+  }
+
+  Future<void> _kickOff() async {
+    setState(() => _loading = true);
+    final resp = await _groq.channelFinderStep(_conversation);
+    _handleResponse(resp);
+  }
+
+  void _handleResponse(ChannelFinderResponse resp) {
+    if (resp.type == ChannelFinderResponseType.suggestions) {
+      setState(() {
+        _suggestions = resp.suggestions!;
+        _done = true;
+        _loading = false;
+      });
+      _addDisplay('assistant', 'Here are 3 channels I think you\'ll love 🎵');
+      _saveSession();
     } else {
-      try {
-        final lesson = Lesson.fromJson(meta);
-        debugPrint('🎬 CHAT_TAP fallback: source=${result.source} mp4=${lesson.mp4Url} vimeo=${lesson.vimeoUrl} mp3=${lesson.mp3Url}');
-        if (!lesson.hasVideo && !lesson.hasAudio) {
-          debugPrint('🔴 CHAT_TAP fallback: NO MEDIA for "${result.title}" source=${result.source}');
-        }
-        if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => PlayerScreen(lesson: lesson)),
-          );
-        }
-      } catch (e) {
-        debugPrint('🔴 CHAT_TAP fallback FAILED: $e source=${result.source} meta=$meta');
-        _showError('לא ניתן לפתוח את השיעור');
-      }
+      _addDisplay('assistant', resp.question!);
+      setState(() => _loading = false);
     }
+    _scrollToBottom();
   }
 
-  Future<void> _openMeirLesson(Map<String, dynamic> meta, String title) async {
-    final vimeoId = meta['vimeo_path']?.toString() ?? '';
-    final mp3 = meta['mp3_path']?.toString() ?? '';
-    String? mp4Url;
+  void _addDisplay(String role, String text) {
+    setState(() => _display.add({'role': role, 'text': text}));
+    _saveSession();
+  }
 
-    debugPrint('🎬 CHAT_TAP meir: vimeoId=$vimeoId mp3=$mp3 title="$title"');
+  Future<void> _send() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _loading || _done) return;
+    _controller.clear();
+    _questionCount++;
 
-    if (vimeoId.isNotEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('טוען קישור וידאו...'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-      mp4Url = await VimeoService.getProgressiveMp4(vimeoId, vimeoBearerToken);
-      debugPrint(mp4Url != null
-          ? '✅ CHAT_TAP meir: resolved mp4=$mp4Url'
-          : '🔴 CHAT_TAP meir: Vimeo resolved NULL for vimeoId=$vimeoId');
+    _addDisplay('user', text);
+    _conversation.add({'role': 'user', 'content': text});
+
+    setState(() => _loading = true);
+    final resp = await _groq.channelFinderStep(_conversation);
+
+    // record assistant turn in conversation
+    final assistantText = resp.type == ChannelFinderResponseType.question
+        ? resp.question!
+        : 'Here are my suggestions.';
+    _conversation.add({'role': 'assistant', 'content': assistantText});
+
+    _handleResponse(resp);
+  }
+
+  Future<void> _addChannel(ChannelSuggestion suggestion) async {
+    final ytService = YouTubeService();
+
+    // Resolve the real channel via YouTube search
+    developer.log('ChannelFinder: resolving "${suggestion.searchQuery}"');
+    SavedChannel? channel;
+    try {
+      channel = await ytService.fetchChannelInfo(suggestion.searchQuery);
+      developer.log('ChannelFinder: resolved → ${channel?.id} "${channel?.title}"');
+    } catch (e) {
+      developer.log('ChannelFinder: fetchChannelInfo threw: $e');
     }
 
-    if (!mounted) return;
-    if (mp4Url == null && mp3.isEmpty) {
-      debugPrint('🔴 CHAT_TAP meir: NO MEDIA — vimeoId=$vimeoId mp3=$mp3');
-      _showError('לא נמצא קישור לשיעור זה');
+    if (channel == null) {
+      developer.log('ChannelFinder: YouTube search returned null for "${suggestion.searchQuery}"');
+      if (mounted) _showSnack('Could not find "${suggestion.title}" on YouTube.');
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PlayerScreen(
-          lesson: Lesson(
-            id: meta['lesson_post_id']?.toString() ?? '',
-            seriesId: meta['series_post_id']?.toString() ?? '',
-            name: title,
-            url: meta['shiur_url']?.toString() ?? '',
-            slug: meta['lesson_post_id']?.toString() ?? '',
-            mp4Url: mp4Url,
-            mp3Url: mp3.isNotEmpty ? mp3 : null,
-            sourceId: 'meir_api',
-          ),
+    if (SavedChannelsService.instance.channels.any((c) => c.id == channel!.id)) {
+      if (mounted) _showSnack('"${channel.title}" is already in your list.');
+      return;
+    }
+    if (SavedChannelsService.instance.channels.length >= SavedChannelsService.maxChannels) {
+      if (mounted) _showSnack('Maximum ${SavedChannelsService.maxChannels} channels reached.');
+      return;
+    }
+
+    await SavedChannelsService.instance.add(channel);
+    developer.log('ChannelFinder: added "${channel.title}" (${channel.id})');
+    if (mounted) {
+      _showSnack('"${channel.title}" added! ✓');
+      setState(() {});
+    }
+  }
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  void _restart() {
+    SharedPreferences.getInstance().then((p) => p.remove(_kSessionKey));
+    setState(() {
+      _conversation.clear();
+      _display.clear();
+      _suggestions = [];
+      _done = false;
+      _questionCount = 0;
+    });
+    _kickOff();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.orange[600],
+          title: const Text('Channel Finder AI'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Start over',
+              onPressed: _restart,
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(12),
+                itemCount: _display.length + (_loading ? 1 : 0) + (_done ? 1 : 0),
+                itemBuilder: (context, i) {
+                  if (i < _display.length) return _buildBubble(_display[i]);
+                  if (_loading) return _buildTyping();
+                  if (_done) return _buildSuggestions();
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+            if (!_done) _buildInput(),
+          ],
+        ),
+    );
+  }
+
+  Widget _buildBubble(Map<String, String> msg) {
+    final isUser = msg['role'] == 'user';
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+        decoration: BoxDecoration(
+          color: isUser ? Colors.orange[600] : Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          msg['text']!,
+          style: TextStyle(color: isUser ? Colors.white : Colors.black87, fontSize: 15),
         ),
       ),
     );
   }
 
-  void _showError(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  Widget _buildTyping() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(16)),
+        child: const SizedBox(
+          width: 40,
+          height: 16,
+          child: _TypingDots(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSuggestions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        for (final s in _suggestions) _buildSuggestionCard(s),
+      ],
+    );
+  }
+
+  Widget _buildSuggestionCard(ChannelSuggestion s) {
+    final alreadyAdded = SavedChannelsService.instance.channels
+        .any((c) => c.title.toLowerCase() == s.title.toLowerCase());
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: Colors.orange[100],
+          child: const Icon(Icons.subscriptions, color: Colors.orange),
+        ),
+        title: Text(s.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(s.reason, style: const TextStyle(fontSize: 13)),
+        trailing: alreadyAdded
+            ? const Icon(Icons.check_circle, color: Colors.green)
+            : FilledButton(
+                onPressed: () {
+                  developer.log('Add button clicked for: ${s.title}');
+                  _addChannel(s);
+                },
+                style: FilledButton.styleFrom(backgroundColor: Colors.orange[600]),
+                child: const Text('Add'),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildInput() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                enabled: !_loading,
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => _send(),
+                decoration: InputDecoration(
+                  hintText: 'Type your answer…',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  isDense: true,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: _loading ? null : _send,
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.orange[600],
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(12),
+              ),
+              child: const Icon(Icons.send),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TypingDots extends StatefulWidget {
+  const _TypingDots();
+  @override
+  State<_TypingDots> createState() => _TypingDotsState();
+}
+
+class _TypingDotsState extends State<_TypingDots> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
+      ..repeat();
   }
 
   @override
   void dispose() {
-    _agent.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('חברותא Ai')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.orange[600]!,
-        title: const Text('חברותא Ai'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _agent.clearChat();
-              setState(() {});
-            },
-          ),
-        ],
-      ),
-      body: TorahChatWidget(
-        agent: _agent,
-        theme: ChatTheme.defaultTheme(context),
-        onSourceTap: _onSourceTap,
-      ),
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (_, __) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(3, (i) {
+            final offset = ((_ctrl.value * 3 - i) % 1.0);
+            final opacity = offset < 0.5 ? offset * 2 : (1 - offset) * 2;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Opacity(
+                opacity: opacity.clamp(0.2, 1.0),
+                child: const CircleAvatar(radius: 4, backgroundColor: Colors.grey),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

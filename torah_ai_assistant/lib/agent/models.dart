@@ -3,12 +3,14 @@ class ChatMessage {
   final bool isUser;
   final DateTime timestamp;
   final List<SourceResult>? searchResults;
+  final String? thinkText;
 
   ChatMessage({
     required this.text,
     required this.isUser,
     required this.timestamp,
     this.searchResults,
+    this.thinkText,
   });
 
   Map<String, dynamic> toJson() => {
@@ -16,6 +18,7 @@ class ChatMessage {
     'isUser': isUser,
     'timestamp': timestamp.millisecondsSinceEpoch,
     'searchResults': searchResults?.map((r) => r.toJson()).toList(),
+    'thinkText': thinkText,
   };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
@@ -23,6 +26,7 @@ class ChatMessage {
     isUser: json['isUser'],
     timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
     searchResults: json['searchResults']?.map<SourceResult>((r) => SourceResult.fromJson(r)).toList(),
+    thinkText: json['thinkText'],
   );
 }
 

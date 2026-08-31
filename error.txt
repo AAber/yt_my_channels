@@ -1,0 +1,88 @@
+se forceLayout = false syncSeqId = -1
+I/InsetsController(24647): onStateChanged: host=live.isaac770.My_YT_Channels.debug/live.isaac770.My_YT_Channels.MainActivity, from=android.view.ViewRootImpl$ViewRootHandler.handleMessageImpl:7121, state=InsetsState: {mDisplayFrame=Rect(0, 0 - 1080, 2340), mDisplayCutout=DisplayCutout{insets=Rect(0, 80 - 0, 0) waterfall=Insets{left=0, top=0, right=0, bottom=0} boundingRect={Bounds=[Rect(0, 0 - 0, 0), Rect(472, 0 - 608, 80), Rect(0, 0 - 0, 0), Rect(0, 0 - 0, 0)]} cutoutPathParserInfo={CutoutPathParserInfo{displayWidth=1080 displayHeight=2340 physicalDisplayWidth=1080 physicalDisplayHeight=2340 density={2.8125} cutoutSpec={M 0,0 H -24.177777778 V 28.4444444444 H 24.177777778 V 0 H 0 Z @dp} rotation={0} scale={1.0} physicalPixelDisplaySizeRatio={1.0}}}}, mRoundedCorners=RoundedCorners{[RoundedCorner{position=TopLeft, radius=0, center=Point(0, 0)}, RoundedCorner{position=TopRight, radius=0, center=Point(0, 0)}, RoundedCorner{position=BottomRight, radius=0, center=Point(0, 0)}, RoundedCorner{position=BottomLeft, radius=0, center=Point(0, 0)}]}  mRoundedCornerFrame=Rect(0, 0 - 1080, 2340), mPrivacyIndicatorBounds=PrivacyIndicatorBounds {static bounds=Rect(956, 0 - 1080, 80) rotation=0}, mDisplayShape=DisplayShape{ spec=-1084927657 displayWidth=1080 displayHeight=2340 physicalPixelDisplaySizeRatio=1.0 rotation=0 offsetX=0 offsetY=0 scale=1.0}, mSources= { InsetsSource: {3 mType=ime mFrame=[0,0][0,0] mVisible=false mFlags=[]}, InsetsSource: {27 mType=displayCutout mFrame=[0,0][1080,80] mVisible=true mFlags=[]}, InsetsSource: {3e9d0000 mType=statusBars mFrame=[0,0][1080,80] mVisible=true mFlags=[]}, InsetsSource: {3e9d0005 mType=mandatorySystemGestures mFrame=[0,0][1080,114] mVisible=true mFlags=[]}, InsetsSource: {3e9d0006 mType=tappableElement mFrame=[0,0][1080,80] mVisible=true mFlags=[]}, InsetsSource: {5ea40001 mType=navigationBars mFrame=[0,2205][1080,2340] mVisible=true mFlags=[]}, InsetsSource: {5ea40004 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags=[]}, InsetsSource: {5ea40005 mType=mandatorySystemGestures mFrame=[0,2205][1080,2340] mVisible=true mFlags=[]}, InsetsSource: {5ea40006 mType=tappableElement mFrame=[0,2205][1080,2340] mVisible=true mFlags=[]}, InsetsSource: {5ea40024 mType=systemGestures mFrame=[0,0][0,0] mVisible=true mFlags=[]} }
+I/ViewRootImpl@5480416[MainActivity](24647): handleResized, msg = 4 frames=ClientWindowFrames{frame=[0,0][1080,2340] display=[0,0][1080,2340] parentFrame=[0,0][0,0]} forceNextWindowRelayout=false displayId=0 dragResizing=false compatScale=1.0 frameChanged=false attachedFrameChanged=false configChanged=false displayChanged=false compatScaleChanged=false
+I/flutter (24647): [Groq] Status: 200
+I/flutter (24647): [Groq] Raw body: {"id":"chatcmpl-987c78dd-5315-4640-aadb-3616408d036c","object":"chat.completion","created":1788097116,"model":"qwen/qwen3.8-27b","choices":[{"index":0,"message":{"role":"assistant","content":"{\"suggestions\": [\n    {\"channel_id\": \"UCzJ1wU0ZsJ7xYbZbZbZbZbZ\", \"title\": \"Pink Floyd\", \"reason\": \"The official channel of the band you mentioned, featuring their iconic 70s albums and live performances.\"},\n    {\"channel_id\": \"UCuAXFkgsw1L7xaCfnd5JJOw\", \"title\": \"Classic Rock\", \"reason\": \"Provides in-depth documentaries and analysis of the 70s classic rock era you love.\"},\n    {\"channel_id\": \"UCbCpQaFnZ63YbZbZbZbZbZb\", \"title\": \"Rockumentary\", \"reason\": \"Features high-quality archival footage and history of 70s rock bands like Pink Floyd.\"}\n]}"},"logprobs":null,"finish_reason":"stop"}],"usage":{"queue_time":0.203749048,"prompt_tokens":407,"prompt_time":0.037563313,"completion_tokens":188,"completion_time":0.404307877,"total_tokens":595,"total_time":0.44187119},"
+I/flutter (24647): [Groq] Content: {"suggestions": [
+I/flutter (24647):     {"channel_id": "UCzJ1wU0ZsJ7xYbZbZbZbZbZ", "title": "Pink Floyd", "reason": "The official channel of the band you mentioned, featuring their iconic 70s albums and live performances."},
+I/flutter (24647):     {"channel_id": "UCuAXFkgsw1L7xaCfnd5JJOw", "title": "Classic Rock", "reason": "Provides in-depth documentaries and analysis of the 70s classic rock era you love."},
+I/flutter (24647):     {"channel_id": "UCbCpQaFnZ63YbZbZbZbZbZb", "title": "Rockumentary", "reason": "Features high-quality archival footage and history of 70s rock bands like Pink Floyd."}
+I/flutter (24647): ]}
+I/flutter (24647): [ChannelFinder] Raw: {"suggestions": [
+I/flutter (24647):     {"channel_id": "UCzJ1wU0ZsJ7xYbZbZbZbZbZ", "title": "Pink Floyd", "reason": "The official channel of the band you mentioned, featuring their iconic 70s albums and live performances."},
+I/flutter (24647):     {"channel_id": "UCuAXFkgsw1L7xaCfnd5JJOw", "title": "Classic Rock", "reason": "Provides in-depth documentaries and analysis of the 70s classic rock era you love."},
+I/flutter (24647):     {"channel_id": "UCbCpQaFnZ63YbZbZbZbZbZb", "title": "Rockumentary", "reason": "Features high-quality archival footage and history of 70s rock bands like Pink Floyd."}
+I/flutter (24647): ]}
+I/ViewRootImpl@5480416[MainActivity](24647): ViewPostIme key 0
+D/Activity(24647): onKeyDown(KEYCODE_BACK)
+I/ViewRootImpl@5480416[MainActivity](24647): ViewPostIme key 1
+D/Activity(24647): onKeyUp(KEYCODE_BACK) isTracking()=true isCanceled()=false hasCallback=false
+I/BLASTBufferQueue_Java(24647): update, w= 1080 h= 2340 mName = ViewRootImpl@5480416[MainActivity] mNativeObject= 0xb400007d9df1b580 sc.mNativeObject= 0xb400007d9e0f75c0 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3004 android.view.ViewRootImpl.relayoutWindow:10048 android.view.ViewRootImpl.performTraversals:4092 android.view.ViewRootImpl.doTraversal:3275 android.view.ViewRootImpl$TraversalRunnable.run:11256 android.view.Choreographer$CallbackRecord.run:1650
+I/ViewRootImpl@5480416[MainActivity](24647): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=true req=(1080,2340)0 dur=0 res=0x0 s={true 0xb400007da5cfe000} ch=false seqId=0
+D/FlutterJNI(24647): Sending viewport metrics to the engine.
+I/ViewRootImpl@5480416[MainActivity](24647): updateBoundsLayer: t=android.view.SurfaceControl$Transaction@aae5827 sc=Surface(name=Bounds for - live.isaac770.My_YT_Channels.debug/live.isaac770.My_YT_Channels.MainActivity@0)/@0x419ad4 frame=136
+I/ViewRootImpl@5480416[MainActivity](24647): registerCallbackForPendingTransactions
+I/ViewRootImpl@5480416[MainActivity](24647): mWNT: t=0xb400007c82d86980 mBlastBufferQueue=0xb400007d9df1b580 fn= 136 caller= android.view.ViewRootImpl$6.onFrameDraw:5582 android.view.ViewRootImpl$2.onFrameDraw:2131 android.view.ThreadedRenderer$1.onFrameDraw:788
+I/BLASTBufferQueue_Java(24647): applyPendingTransactions, mName= ViewRootImpl@5480416[MainActivity] mNativeObject= 0xb400007d9df1b580 frameNumber= 136 caller= android.view.ViewRootImpl$6.lambda$onFrameDraw$0:5596 android.view.ViewRootImpl$6.$r8$lambda$9ThyGB6fC3mub7oMSjoAoWLhwMM:0 android.view.ViewRootImpl$6$$ExternalSyntheticLambda0.onFrameCommit:4 android.view.ThreadedRenderer$1.lambda$onFrameDraw$0:800 android.view.ThreadedRenderer$1$$ExternalSyntheticLambda0.onFrameCommit:2 <bottom of call stack>
+I/ViewRootImpl@5480416[MainActivity](24647): registerCallbackForPendingTransactions
+W/WindowOnBackDispatcher(24647): OnBackInvokedCallback is not enabled for the application.
+W/WindowOnBackDispatcher(24647): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+
+
+
+
+
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/Users/ubuntu/.pub-cache/hosted/pub.dev/flutter_inappwebview_android-1.1.3/android/build.gradle' line: 44
+
+* What went wrong:
+A problem occurred evaluating project ':flutter_inappwebview_android'.
+> `getDefaultProguardFile('proguard-android.txt')` is no longer supported since it includes `-dontoptimize`, which prevents R8 from performing many optimizations. Instead use `getDefaultProguardFile('proguard-android-optimize.txt)`, and if needed, temporarily use `-dontoptimize` in a custom keep rule file while fixing breakages.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (Powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1m 38s
+Running Gradle task 'assembleDebug'...                             99.8s
+Error: Gradle task assembleDebug failed with exit code 1
+
+
+
+ less intense production style."
+I/flutter ( 6265):     }
+I/flutter ( 6265):   ]
+I/flutter ( 6265): }
+I/flutter ( 6265): [ChannelFinder] Raw: {
+I/flutter ( 6265):   "suggestions": [
+I/flutter ( 6265):     {
+I/flutter ( 6265):       "channel_id": "UCM27u5o4n3B8q5y7z9x0w1a",
+I/flutter ( 6265):       "title": "Classic Rock 70s",
+I/flutter ( 6265):       "reason": "This channel curates light and melodic classic rock from the 70s, fitting your preference for a relaxed vibe without specific artist constraints."
+I/flutter ( 6265):     },
+I/flutter ( 6265):     {
+I/flutter ( 6265):       "channel_id": "UC8XoVq5y7z9x0w1a2b3c4d5",
+I/flutter ( 6265):       "title": "Easy Listening Rock",
+I/flutter ( 6265):       "reason": "Focusing on softer, acoustic, and melodic tracks from the classic era, this channel provides a gentle listening experience."
+I/flutter ( 6265):     },
+I/flutter ( 6265):     {
+I/flutter ( 6265):       "channel_id": "UC1a2b3c4d5e6f7g8h9i0j1k",
+I/flutter ( 6265):       "title": "Rock Relaxation",
+I/flutter ( 6265):       "reason": "Designed for background listening, this channel features classic rock songs with a lighter, less intense production style."
+I/flutter ( 6265):     }
+I/flutter ( 6265):   ]
+I/flutter ( 6265): }
+I/BLASTBufferQueue_Java( 6265): update, w= 1080 h= 2340 mName = ViewRootImpl@5480416[MainActivity] mNativeObject= 0xb400007c85d74380 sc.mNativeObject= 0xb400007da5b62500 format= -3 caller= android.view.ViewRootImpl.updateBlastSurfaceIfNeeded:3004 android.view.ViewRootImpl.relayoutWindow:10048 android.view.ViewRootImpl.performTraversals:4092 android.view.ViewRootImpl.doTraversal:3275 android.view.ViewRootImpl$TraversalRunnable.run:11256 android.view.Choreographer$CallbackRecord.run:1650
+I/ViewRootImpl@5480416[MainActivity]( 6265): Relayout returned: old=(0,0,1080,2340) new=(0,0,1080,2340) relayoutAsync=true req=(1080,2340)0 dur=1 res=0x0 s={true 0xb400007d44349000} ch=false seqId=0
+D/FlutterJNI( 6265): Sending viewport metrics to the engine.
+I/ViewRootImpl@5480416[MainActivity]( 6265): updateBoundsLayer: t=android.view.SurfaceControl$Transaction@7bd0541 sc=Surface(name=Bounds for - live.isaac770.My_YT_Channels.debug/live.isaac770.My_YT_Channels.MainActivity@0)/@0x45b3ae6 frame=136
+I/ViewRootImpl@5480416[MainActivity]( 6265): registerCallbackForPendingTransactions
+I/ViewRootImpl@5480416[MainActivity]( 6265): mWNT: t=0xb400007c80c6d200 mBlastBufferQueue=0xb400007c85d74380 fn= 136 caller= android.view.ViewRootImpl$6.onFrameDraw:5582 android.view.ViewRootImpl$2.onFrameDraw:2131 android.view.ThreadedRenderer$1.onFrameDraw:788
+I/BLASTBufferQueue_Java( 6265): applyPendingTransactions, mName= ViewRootImpl@5480416[MainActivity] mNativeObject= 0xb400007c85d74380 frameNumber= 136 caller= android.view.ViewRootImpl$6.lambda$onFrameDraw$0:5596 android.view.ViewRootImpl$6.$r8$lambda$9ThyGB6fC3mub7oMSjoAoWLhwMM:0 android.view.ViewRootImpl$6$$ExternalSyntheticLambda0.onFrameCommit:4 android.view.ThreadedRenderer$1.lambda$onFrameDraw$0:800 android.view.ThreadedRenderer$1$$ExternalSyntheticLambda0.onFrameCommit:2 <bottom of call stack>
+I/ViewRootImpl@5480416[MainActivity]( 6265): registerCallbackForPendingTransactions
+

@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SavedChannel {
   final String id;
   final String title;
-  final String avatarUrl; // network URL — fetched from YouTube
+  final String avatarUrl;
 
   const SavedChannel({
     required this.id,
@@ -28,7 +29,7 @@ class SavedChannel {
   int get hashCode => id.hashCode;
 }
 
-class SavedChannelsService {
+class SavedChannelsService extends ChangeNotifier {
   static const _key = 'saved_yt_channels';
   static const int maxChannels = 8;
 
@@ -58,11 +59,13 @@ class SavedChannelsService {
     if (_channels.any((c) => c.id == channel.id)) return;
     if (_channels.length >= maxChannels) return;
     _channels.add(channel);
+    notifyListeners();
     await _save();
   }
 
   Future<void> remove(String channelId) async {
     _channels.removeWhere((c) => c.id == channelId);
+    notifyListeners();
     await _save();
   }
 
