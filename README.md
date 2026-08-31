@@ -2,6 +2,12 @@
 
 A Flutter app for browsing YouTube channels and media content.
 
+# AppStore Link
+https://apps.apple.com/us/app/my-yt-channels/id6800364851
+
+# PlayStore Link
+https://play.google.com/store/apps/details?id=live.isaac770.My_YT_Channels
+
 ---
 
 ## First-time setup
