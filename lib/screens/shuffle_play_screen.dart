@@ -22,8 +22,16 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
   bool _loading = true;
   String? _error;
 
+  // A single controller lives for the whole session. We swap videos with
+  // controller.load(id) instead of disposing/recreating the controller —
+  // recreating it broke the underlying webview binding and left buttons
+  // permanently disabled after the first track.
   YoutubePlayerController? _controller;
   bool _playerReady = false;
+
+  // Prevents a single "ended" state from being handled more than once
+  // (the controller can emit the ended state repeatedly in a row).
+  bool _endedHandledForCurrentVideo = false;
 
   @override
   void initState() {
@@ -69,52 +77,83 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
       _index = 0;
       _loading = false;
     });
-    _initPlayer(_queue[0].video.id);
+    _loadVideo(_queue[0].video.id);
   }
 
-  void _initPlayer(String videoId) {
-    _controller?.removeListener(_onPlayerEvent);
-    _controller?.dispose();
+  // Loads a video into the persistent controller, creating it only once.
+  void _loadVideo(String videoId) {
+    _endedHandledForCurrentVideo = false;
 
-    _controller = YoutubePlayerController(
-      initialVideoId: videoId,
-      flags: const YoutubePlayerFlags(
-        autoPlay: true,
-        mute: false,
-        hideControls: true,
-        enableCaption: false,
-        showLiveFullscreenButton: false,
-      ),
-    )..addListener(_onPlayerEvent);
-
-    setState(() => _playerReady = false);
-  }
-
-  void _onPlayerEvent() {
-    if (!mounted) return;
-    final v = _controller!.value;
-    if (v.playerState == PlayerState.ended) {
-      _playNext();
+    if (_controller == null) {
+      _controller = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: true,
+          mute: false,
+          hideControls: true,
+          enableCaption: false,
+          showLiveFullscreenButton: false,
+        ),
+      )..addListener(_onPlayerEvent);
+    } else {
+      _controller!.load(videoId);
     }
+  }
+
+  // Fires continuously as the controller's position/play-state changes.
+  // We rebuild so the slider and play/pause icon stay live, mark the
+  // player as ready once it's actually producing state, and detect
+  // end-of-video to auto-advance exactly once per track.
+  void _onPlayerEvent() {
+    if (!mounted || _controller == null) return;
+    final v = _controller!.value;
+
+    if (!_playerReady &&
+        v.playerState != PlayerState.unknown &&
+        v.playerState != PlayerState.unStarted) {
+      _playerReady = true;
+    }
+
+    if (v.playerState == PlayerState.ended && !_endedHandledForCurrentVideo) {
+      _endedHandledForCurrentVideo = true;
+      // Defer so we're not mutating state from inside the listener
+      // callback that's also driving this same build/frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _playNext();
+      });
+    }
+
+    setState(() {});
   }
 
   void _playNext() {
     if (_queue.isEmpty) return;
     final next = (_index + 1) % _queue.length;
     setState(() => _index = next);
-    _initPlayer(_queue[next].video.id);
+    _loadVideo(_queue[next].video.id);
   }
 
   void _playPrev() {
     if (_queue.isEmpty) return;
     final prev = (_index - 1 + _queue.length) % _queue.length;
     setState(() => _index = prev);
-    _initPlayer(_queue[prev].video.id);
+    _loadVideo(_queue[prev].video.id);
   }
 
   void _playAt(int i) {
+    if (_queue.isEmpty || i == _index) return;
     setState(() => _index = i);
-    _initPlayer(_queue[i].video.id);
+    _loadVideo(_queue[i].video.id);
+  }
+
+  void _togglePlayPause() {
+    final v = _controller?.value;
+    if (v == null) return;
+    if (v.isPlaying) {
+      _controller!.pause();
+    } else {
+      _controller!.play();
+    }
   }
 
   @override
@@ -164,7 +203,6 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
       onReady: () {
         if (mounted) setState(() => _playerReady = true);
       },
-      onEnded: (_) => _playNext(),
     );
 
     return YoutubePlayerBuilder(
@@ -290,11 +328,7 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
                   isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
                   size: 44,
                 ),
-                onPressed: _playerReady
-                    ? () => isPlaying
-                        ? _controller!.pause()
-                        : _controller!.play()
-                    : null,
+                onPressed: _playerReady ? _togglePlayPause : null,
               ),
               IconButton(
                 icon: const Icon(Icons.skip_next),
