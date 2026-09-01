@@ -115,10 +115,14 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             title: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.music_note, color: Color(0xFFE53935), size: 20),
-                const SizedBox(width: 6),
-                Text(l10n.translate('select_source'),
-                    style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                //const Icon(Icons.music_note, color: Color(0xFFE53935), size: 18),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(l10n.translate('select_source'),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.5
+                      , fontSize: 18)),
+                ),
               ],
             ),
             centerTitle: true,
