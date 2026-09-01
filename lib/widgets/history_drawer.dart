@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../l10n/language_provider.dart';
 import '../services/watch_history_service.dart';
-import '../screens/player_screen.dart';
 import '../screens/youtube_player_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -179,17 +178,7 @@ class _HistoryDrawer extends StatelessWidget {
                       entry: entry,
                       onTap: () {
                         Navigator.pop(context);
-                        if (entry.type == 'lesson' && entry.lesson != null) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PlayerScreen(
-                                lesson: entry.lesson!,
-                                resumePosition: entry.position,
-                              ),
-                            ),
-                          );
-                        } else if (entry.type == 'youtube' &&
+                        if (entry.type == 'youtube' &&
                             entry.video != null) {
                           Navigator.push(
                             context,
