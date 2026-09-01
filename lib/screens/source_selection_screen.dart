@@ -330,7 +330,7 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(l10n.translate('more_apps_from_developer'),
-              style: const TextStyle(fontSize: 12, color: Colors.white38, letterSpacing: 0.3)),
+              style: const TextStyle(fontSize: 12, color: Colors.deepOrange, letterSpacing: 0.3)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
