@@ -17,7 +17,6 @@ import '../services/audio_player_service.dart';
 import '../services/lesson_media_resolver.dart';
 import '../services/watch_history_service.dart';
 import '../services/download_service.dart';
-import 'offline_library_screen.dart';
 
 class PlayerScreen extends StatefulWidget {
   final Lesson lesson;
@@ -446,12 +445,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         _audioPlayer = null;
                         if (mounted) setState(() => _isAudioInitialized = false);
                       }
-                      if (!context.mounted) return;
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const OfflineLibraryScreen()),
-                      );
+                      // if (!context.mounted) return;
+                      // await Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //      // builder: (_) => const OfflineLibraryScreen()),
+                      // );
                       if (mounted && _lesson.hasAudio) {
                         await _initAudioPlayer();
                       }
