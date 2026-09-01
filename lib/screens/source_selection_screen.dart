@@ -103,7 +103,24 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
           historyService: _historyService,
           controller: _drawerController,
           appBar: AppBar(
-            title: Text(l10n.translate('select_source')),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF1A0A0A), Color(0xFF0A0A0F)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.music_note, color: Color(0xFFE53935), size: 20),
+                const SizedBox(width: 6),
+                Text(l10n.translate('select_source'),
+                    style: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+              ],
+            ),
             centerTitle: true,
             automaticallyImplyLeading: false,
             leading: isHebrew
@@ -130,22 +147,22 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
           body: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                 child: TextField(
                   controller: _searchController,
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: l10n.translate('search_all_sources'),
                     prefixIcon: const Icon(Icons.search),
                     suffixIcon: _isSearching
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear, color: Colors.white38),
                             onPressed: () {
                               _searchController.clear();
                               setState(() { _isSearching = false; _searchResults = []; });
                             },
                           )
                         : null,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -162,7 +179,8 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
               context,
               MaterialPageRoute(builder: (_) => const TorahChatScreen()),
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: const Color(0xFFE53935),
+            elevation: 6,
             child: const Icon(Icons.auto_awesome, color: Colors.white),
           ),
           bottomNavigationBar: _isSearching ? null : _buildBottomBar(),
@@ -256,18 +274,27 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
   }
 
   Widget _buildResultTile(_SearchResult result) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A26),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundImage: result.channel.avatarUrl.isNotEmpty
-              ? channelAvatarImage(result.channel.avatarUrl)
-              : null,
-          child: result.channel.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: result.channel.avatarUrl.isNotEmpty
+              ? Image(image: channelAvatarImage(result.channel.avatarUrl),
+                  width: 44, height: 44, fit: BoxFit.cover)
+              : const Icon(Icons.person, color: Colors.white38),
         ),
-        title: Text(result.video.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text(result.channel.title, style: const TextStyle(fontSize: 12)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        title: Text(result.video.title,
+            maxLines: 2, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: Colors.white, fontSize: 13)),
+        subtitle: Text(result.channel.title,
+            style: const TextStyle(fontSize: 11, color: Colors.white38)),
+        trailing: const Icon(Icons.play_circle_outline,
+            color: Color(0xFFE53935), size: 24),
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -285,16 +312,22 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
 
   Widget _buildBottomBar() {
     final l10n = AppLocalizations.of(context);
-    return BottomAppBar(
-      color: Theme.of(context).primaryColor,
-      height: 90,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1A0A0A), Color(0xFF0A0A0F)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border(top: BorderSide(color: Color(0xFF2A2A3A), width: 0.5)),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(l10n.translate('more_apps_from_developer'),
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white)),
-          const SizedBox(height: 6),
+              style: const TextStyle(fontSize: 12, color: Colors.white38, letterSpacing: 0.3)),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -323,17 +356,18 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.white54),
+          border: Border.all(color: Colors.white12),
           borderRadius: BorderRadius.circular(8),
+          color: const Color(0xFF1A1A26),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(iconPath, width: 18, height: 18,
-                errorBuilder: (_, __, ___) => const Icon(Icons.apps, size: 18, color: Colors.white)),
+                errorBuilder: (_, __, ___) => const Icon(Icons.apps, size: 18, color: Colors.white38)),
             const SizedBox(width: 6),
             Flexible(child: Text(name,
-                style: const TextStyle(fontSize: 13, color: Colors.white),
+                style: const TextStyle(fontSize: 12, color: Colors.white70),
                 maxLines: 1, overflow: TextOverflow.ellipsis)),
           ],
         ),
@@ -352,37 +386,70 @@ class _ChannelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: channel.avatarUrl.isNotEmpty
-                      ? Image(
-                          image: channelAvatarImage(channel.avatarUrl),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const _FallbackIcon())
-                      : const _FallbackIcon(),
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Full-bleed image
+            channel.avatarUrl.isNotEmpty
+                ? Image(
+                    image: channelAvatarImage(channel.avatarUrl),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const _FallbackIcon(),
+                  )
+                : const _FallbackIcon(),
+            // Bottom gradient overlay
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.45, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.82),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(channel.title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-              Text('hold to manage',
-                  style: TextStyle(fontSize: 10, color: Colors.grey[400])),
-            ],
-          ),
+            ),
+            // Name at bottom
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 10,
+              child: Text(
+                channel.title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  shadows: [Shadow(blurRadius: 4, color: Colors.black)],
+                ),
+              ),
+            ),
+            // Subtle red top-left glow dot
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                width: 7,
+                height: 7,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE53935),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -392,8 +459,12 @@ class _ChannelButton extends StatelessWidget {
 class _FallbackIcon extends StatelessWidget {
   const _FallbackIcon();
   @override
-  Widget build(BuildContext context) => Center(
-      child: Icon(Icons.subscriptions, color: Theme.of(context).primaryColor, size: 40));
+  Widget build(BuildContext context) => Container(
+    color: const Color(0xFF1A1A26),
+    child: const Center(
+      child: Icon(Icons.subscriptions, color: Color(0xFFE53935), size: 40),
+    ),
+  );
 }
 
 ImageProvider channelAvatarImage(String url) {
@@ -408,32 +479,24 @@ class _AddChannelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: atMax ? Colors.grey[300]! : Theme.of(context).primaryColor,
-          width: 1.5,
+    final color = atMax ? Colors.white24 : const Color(0xFFE53935);
+    return GestureDetector(
+      onTap: atMax ? null : onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color, width: 1.5),
+          color: const Color(0xFF12121A),
         ),
-      ),
-      child: InkWell(
-        onTap: atMax ? null : onTap,
-        borderRadius: BorderRadius.circular(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(atMax ? Icons.check_circle_outline : Icons.add_circle_outline,
-                size: 36,
-                color: atMax ? Colors.grey : Theme.of(context).primaryColor),
-            const SizedBox(height: 6),
+                size: 38, color: color),
+            const SizedBox(height: 8),
             Text(
               atMax ? 'Max reached' : '+ Add Channel',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: atMax ? Colors.grey : Theme.of(context).primaryColor,
-              ),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
             ),
           ],
         ),
