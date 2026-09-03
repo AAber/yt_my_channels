@@ -128,16 +128,14 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
     setState(() {});
   }
 
-  // Share ↑ — the specific now-playing video (YouTube URL = full OG preview)
+  // Share ↑ — the app link with OG preview
   void _shareNowPlaying() {
     if (_queue.isEmpty) return;
     final current = _queue[_index];
-    final videoUrl = 'https://youtu.be/${current.video.id}';
     Share.share(
       '🎵 "${current.video.title}"\n'
       '${current.channelTitle}\n\n'
-      '$videoUrl\n\n'
-      'Get My YT Channels app 👇\nhttps://myyt.isaac770.live/',
+      'https://myyt.isaac770.live/',
       subject: current.video.title,
     );
   }

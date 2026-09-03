@@ -41,12 +41,11 @@ class DeeplinkService {
           .where((list) => list != null)
           .cast<List<SavedChannel>>();
 
-  /// Builds a shareable URL encoding [channels].
+  /// Builds a shareable URL — channels + titles only, no avatars (keeps URL short for OG preview).
   static String buildShareUrl(List<SavedChannel> channels) {
     final ids    = channels.map((c) => c.id).join(',');
     final titles = channels.map((c) => Uri.encodeComponent(c.title)).join(',');
-    final avatars = channels.map((c) => Uri.encodeComponent(c.avatarUrl)).join(',');
-    return '$_base?channels=$ids&titles=$titles&avatars=$avatars';
+    return '${_base}?channels=$ids&titles=$titles';
   }
 
   /// Parses a URI and resolves channels from it.
@@ -57,20 +56,15 @@ class DeeplinkService {
         ?.split(',')
         .map(Uri.decodeComponent)
         .toList() ?? [];
-    final avatars = uri.queryParameters['avatars']
-        ?.split(',')
-        .map(Uri.decodeComponent)
-        .toList() ?? [];
 
     if (ids.isEmpty) return null;
 
     final channels = <SavedChannel>[];
     for (var i = 0; i < ids.length; i++) {
       final id    = ids[i].trim();
-      final title = i < titles.length  ? titles[i]  : id;
-      final avatar = i < avatars.length ? avatars[i] : '';
+      final title = i < titles.length ? titles[i] : id;
       if (id.isNotEmpty) {
-        channels.add(SavedChannel(id: id, title: title, avatarUrl: avatar));
+        channels.add(SavedChannel(id: id, title: title, avatarUrl: ''));
       }
     }
 
