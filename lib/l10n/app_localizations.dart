@@ -47,7 +47,7 @@ class AppLocalizations {
       'no_results': 'לא נמצאו תוצאות',
       'select_source': 'My YT Channels',
       'coming_soon': 'בקרוב',
-      'more_apps_from_developer': 'עוד אפליקציות ממפתח זה',
+      'more_apps_from_developer': 'More from this developer',
       'playback_speed': 'מהירות ניגון:',
     },
     'en': {

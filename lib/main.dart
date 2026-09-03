@@ -81,18 +81,45 @@ class MyYTApp extends StatelessWidget {
             );
           },
           theme: ThemeData(
-            primarySwatch: Colors.blue,
-            primaryColor: const Color(0xFF1976D2),
+            useMaterial3: true,
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+            primaryColor: const Color(0xFFE53935),
             colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF1976D2),
-              brightness: Brightness.light,
+              seedColor: const Color(0xFFE53935),
+              brightness: Brightness.dark,
+              surface: const Color(0xFF12121A),
+              onSurface: Colors.white,
             ),
             appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xFF1976D2),
+              backgroundColor: Color(0xFF0A0A0F),
               foregroundColor: Colors.white,
-              elevation: 2,
+              elevation: 0,
+              centerTitle: true,
             ),
-            useMaterial3: true,
+            cardTheme: CardThemeData(
+              color: const Color(0xFF1A1A26),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: const Color(0xFF1A1A26),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Color(0xFFE53935), width: 1.5),
+              ),
+              hintStyle: TextStyle(color: Colors.white38),
+              prefixIconColor: Colors.white38,
+            ),
           ),
           home: home,
         );
