@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:provider/provider.dart';
 import '../l10n/language_provider.dart';
@@ -126,6 +127,17 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
     setState(() {});
   }
 
+  void _sharePlaylist() {
+    final channels = SavedChannelsService.instance.channels;
+    final names = channels.map((c) => c.title).join(', ');
+    final text =
+        '🎵 Check out my music mix on My YT Channels!\n'
+        'Now playing: ${_queue.isNotEmpty ? _queue[_index].video.title : "Shuffle mix"}\n'
+        'Channels: $names\n\n'
+        'Get the app 👇\nhttps://myyt.isaac770.live/';
+    Share.share(text);
+  }
+
   void _playNext() {
     if (_queue.isEmpty) return;
     final next = (_index + 1) % _queue.length;
@@ -215,6 +227,11 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
           leading: isHebrew ? null : const BackButton(),
           actions: [
             if (isHebrew) const BackButton(),
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              tooltip: 'Share playlist',
+              onPressed: _queue.isEmpty ? null : _sharePlaylist,
+            ),
             IconButton(
               icon: const Icon(Icons.shuffle),
               tooltip: 'Reshuffle',
