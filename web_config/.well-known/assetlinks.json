@@ -1,0 +1,22 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "mobile.meritv.com",
+      "sha256_cert_fingerprints": [
+        "BC:3B:68:88:5E:F3:78:31:60:E3:1C:03:53:E1:93:B4:02:B1:DE:BE:B6:FD:F0:9B:BC:E8:25:AC:71:B6:54:28"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "live.isaac770.My_YT_Channels",
+      "sha256_cert_fingerprints": [
+        "40:AC:97:5A:9D:6C:55:3E:3B:B2:81:31:46:92:F1:2F:3D:C4:DC:BE:A1:EB:6E:CF:54:5E:7E:40:EC:F6:77:7B"
+      ]
+    }
+  }
+]

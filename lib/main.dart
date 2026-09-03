@@ -9,6 +9,7 @@ import 'l10n/language_provider.dart';
 import 'screens/channel_picker_screen.dart';
 import 'screens/source_selection_screen.dart';
 import 'services/saved_channels_service.dart';
+import 'services/deeplink_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +36,15 @@ Future<void> main() async {
 
   // Load saved channels before deciding which screen to show
   await SavedChannelsService.instance.load();
+
+  // Check if app was opened via a share deeplink
+  final linkedChannels = await DeeplinkService.instance.checkInitialLink();
+  if (linkedChannels != null && linkedChannels.isNotEmpty) {
+    for (final ch in linkedChannels) {
+      await SavedChannelsService.instance.add(ch);
+    }
+    developer.log('✓ Deeplink: loaded ${linkedChannels.length} channels', name: 'APP_INIT');
+  }
   developer.log('✓ SavedChannels: ${SavedChannelsService.instance.channels.length} channels', name: 'APP_INIT');
 
   developer.log('▶ runApp()', name: 'APP_INIT');

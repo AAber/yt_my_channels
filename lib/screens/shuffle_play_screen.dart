@@ -5,6 +5,7 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:provider/provider.dart';
 import '../l10n/language_provider.dart';
 import '../services/saved_channels_service.dart';
+import '../services/deeplink_service.dart';
 import '../services/youtube_service.dart';
 import 'dart:developer' as developer;
 
@@ -127,15 +128,31 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
     setState(() {});
   }
 
+  // Share ↑ — the specific now-playing video (YouTube URL = full OG preview)
+  void _shareNowPlaying() {
+    if (_queue.isEmpty) return;
+    final current = _queue[_index];
+    final videoUrl = 'https://youtu.be/${current.video.id}';
+    Share.share(
+      '🎵 "${current.video.title}"\n'
+      '${current.channelTitle}\n\n'
+      '$videoUrl\n\n'
+      'Get My YT Channels app 👇\nhttps://myyt.isaac770.live/',
+      subject: current.video.title,
+    );
+  }
+
+  // Share ≡▶ — the full channel playlist as a deeplink
   void _sharePlaylist() {
     final channels = SavedChannelsService.instance.channels;
-    final names = channels.map((c) => c.title).join(', ');
-    final text =
-        '🎵 Check out my music mix on My YT Channels!\n'
-        'Now playing: ${_queue.isNotEmpty ? _queue[_index].video.title : "Shuffle mix"}\n'
-        'Channels: $names\n\n'
-        'Get the app 👇\nhttps://myyt.isaac770.live/';
-    Share.share(text);
+    if (channels.isEmpty) return;
+    final url = DeeplinkService.buildShareUrl(channels.toList());
+    final names = channels.map((c) => c.title).join(' · ');
+    Share.share(
+      '🎵 My YT Channels playlist\n$names\n\n'
+      'Tap to install the app and load my channels automatically 👇\n$url',
+      subject: 'My YT Channels playlist',
+    );
   }
 
   void _playNext() {
@@ -228,8 +245,13 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
           actions: [
             if (isHebrew) const BackButton(),
             IconButton(
-              icon: const Icon(Icons.share_outlined),
-              tooltip: 'Share playlist',
+              icon: const Icon(Icons.ios_share_outlined),
+              tooltip: 'Share now playing',
+              onPressed: _queue.isEmpty ? null : _shareNowPlaying,
+            ),
+            IconButton(
+              icon: const Icon(Icons.playlist_play),
+              tooltip: 'Share full playlist',
               onPressed: _queue.isEmpty ? null : _sharePlaylist,
             ),
             IconButton(

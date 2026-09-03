@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "P5NY23GU8C.live.isaac770.my-yt-channels",
+        "paths": ["/*"]
+      }
+    ]
+  }
+}
