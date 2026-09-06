@@ -38,7 +38,7 @@ main.dart
 
 **Rules:**
 - Minimum 1 channel to proceed
-- Maximum 8 channels
+- Maximum 18 channels
 - Channels are reorderable (drag handle)
 - Each channel can be removed individually
 - Changes are persisted on "Continue / Save"
@@ -50,7 +50,7 @@ main.dart
 - Loads channels from `SavedChannelsService`
 - Renders a 2-column grid of channel buttons
 - Each button shows the channel's YouTube avatar (network image) and title
-- Last tile is always the `+ Add Channel` button (disabled when at max 8)
+- Last tile is always the `+ Add Channel` button (disabled when at max 18)
 - Search bar searches across all saved channels' videos via YouTube API
 - Torah AI chat FAB (orange) remains
 
@@ -66,7 +66,7 @@ Singleton. Persists to `SharedPreferences` under key `saved_yt_channels`.
 SavedChannelsService.instance.load()          // call at app start
 SavedChannelsService.instance.channels        // List<SavedChannel>
 SavedChannelsService.instance.isEmpty         // true on first launch
-SavedChannelsService.instance.add(channel)    // max 8
+SavedChannelsService.instance.add(channel)    // max 18
 SavedChannelsService.instance.remove(id)
 ```
 
@@ -113,7 +113,7 @@ Resolution order:
 3. User pastes a YouTube URL / handle → taps `+`
 4. App calls `YouTubeService.fetchChannelInfo()` → resolves channel ID + avatar
 5. Channel appears in the staged list with avatar and title
-6. User adds 1–8 channels, optionally reorders or removes
+6. User adds 1–18 channels, optionally reorders or removes
 7. Taps **Continue to App** → channels saved → `SourceSelectionScreen` shown
 
 ### Returning user
@@ -183,7 +183,7 @@ See `README.md` and `lib/States/Keys.template` for setup instructions.
 - [ ] Add channel by bare `UC...` ID → resolves correctly
 - [ ] Proceed with 0 channels → button disabled
 - [ ] Proceed with 1 channel → works
-- [ ] Add 8 channels → `+` tile shows "Max reached"
+- [ ] Add 18 channels → `+` tile shows "Max reached"
 - [ ] Reorder channels → order persisted after restart
 - [ ] Remove channel in manage mode → removed from grid
 - [ ] Kill and relaunch → saved channels restored

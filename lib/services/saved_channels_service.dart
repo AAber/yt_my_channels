@@ -31,7 +31,7 @@ class SavedChannel {
 
 class SavedChannelsService extends ChangeNotifier {
   static const _key = 'saved_yt_channels';
-  static const int maxChannels = 8;
+  static const int maxChannels = 18;
 
   static SavedChannelsService? _instance;
   SavedChannelsService._();
