@@ -108,9 +108,9 @@ class GroqClient implements LlmProvider {
   final String _baseUrl = 'https://api.groq.com/openai/v1';
 
   static const List<String> _staticFallbacks = [
-    'qwen/qwen3-32b',
+    'openai/gpt-oss-120b',
     'qwen/qwen3.6-27b',
-    'openai/gpt-oss-20b',
+    'llama-3.1-8b-instant',
   ];
 
   final String preferredModel;
