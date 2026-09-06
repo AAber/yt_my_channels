@@ -272,7 +272,18 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: player,
+                child: Stack(
+                  children: [
+                    player,
+                    Positioned.fill(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _togglePlayPause,
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
