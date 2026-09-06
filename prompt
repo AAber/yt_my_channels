@@ -1,3 +1,7 @@
+Review the chat ai code in the torah_ai_assistant/ folder and refactor it to run a loop of 3 questions and then 3 recommendations and then 3q again as long as the user wants to chat ensure the Ai doesn't recommand the same channel twice make sure to show the green v when the channel is added 
+
+
+
 The channels are added now but I need to refresh the UI for them to show and the don't have the image the app doesn't pull
   the channels default image and the new channels don't work see this error log: I/flutter (11009):       "channel_id":
   "UCJ6XbJzY6Y6Y6Y6Y6Y6Y6", make small changes so I can test each fix

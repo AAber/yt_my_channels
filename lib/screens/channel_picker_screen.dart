@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import '../services/saved_channels_service.dart';
 import '../services/youtube_service.dart';
 import 'source_selection_screen.dart';
+import 'torah_chat_screen.dart';
 
 class ChannelPickerScreen extends StatefulWidget {
   /// When true the screen is opened from the + button (already has channels).
@@ -117,6 +118,16 @@ class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
         centerTitle: true,
         automaticallyImplyLeading: widget.isAddMode,
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TorahChatScreen()),
+        ),
+        backgroundColor: const Color(0xFFE53935),
+        elevation: 6,
+        child: const Icon(Icons.auto_awesome, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
       body: Column(
         children: [
           // ── Header ──────────────────────────────────────────────────────

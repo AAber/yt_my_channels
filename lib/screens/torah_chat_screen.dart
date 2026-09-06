@@ -9,6 +9,31 @@ import 'dart:developer' as developer;
 
 const _kSessionKey = 'channel_finder_session';
 
+// A display item is either a chat bubble or a suggestions block
+class _DisplayItem {
+  final String? role;   // 'user' | 'assistant' — null means suggestions block
+  final String? text;
+  final List<ChannelSuggestion>? suggestions;
+
+  const _DisplayItem.bubble({required this.role, required this.text}) : suggestions = null;
+  const _DisplayItem.suggestions(this.suggestions) : role = null, text = null;
+
+  Map<String, dynamic> toJson() => role != null
+      ? {'role': role, 'text': text}
+      : {'suggestions': suggestions!.map((s) => {'searchQuery': s.searchQuery, 'title': s.title, 'reason': s.reason}).toList()};
+
+  factory _DisplayItem.fromJson(Map<String, dynamic> j) {
+    if (j.containsKey('suggestions')) {
+      return _DisplayItem.suggestions((j['suggestions'] as List).map((s) => ChannelSuggestion(
+        searchQuery: s['searchQuery'] as String,
+        title: s['title'] as String,
+        reason: s['reason'] as String,
+      )).toList());
+    }
+    return _DisplayItem.bubble(role: j['role'] as String, text: j['text'] as String);
+  }
+}
+
 class TorahChatScreen extends StatefulWidget {
   const TorahChatScreen({super.key});
 
@@ -19,18 +44,13 @@ class TorahChatScreen extends StatefulWidget {
 class _TorahChatScreenState extends State<TorahChatScreen> {
   late final GroqClient _groq;
   final _controller = TextEditingController();
-  final _scrollKey = GlobalKey<AnimatedListState>();
   final _scrollController = ScrollController();
 
-  // conversation sent to the LLM: alternating user/assistant turns
   final List<Map<String, String>> _conversation = [];
-  // display messages: {role, text}
-  final List<Map<String, String>> _display = [];
+  final List<_DisplayItem> _display = [];
 
   bool _loading = false;
-  bool _done = false; // suggestions received
-  List<ChannelSuggestion> _suggestions = [];
-  int _questionCount = 0;
+  final Set<String> _addingTitles = {};
 
   @override
   void initState() {
@@ -53,29 +73,16 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
       if (raw != null) {
         final data = jsonDecode(raw) as Map<String, dynamic>;
         final display = (data['display'] as List)
-            .map((e) => Map<String, String>.from(e as Map))
+            .map((e) => _DisplayItem.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList();
         final conversation = (data['conversation'] as List)
             .map((e) => Map<String, String>.from(e as Map))
             .toList();
-        final done = data['done'] as bool? ?? false;
-        final suggestions = done
-            ? (data['suggestions'] as List)
-                .map((s) => ChannelSuggestion(
-                      searchQuery: s['searchQuery'] as String,
-                      title: s['title'] as String,
-                      reason: s['reason'] as String,
-                    ))
-                .toList()
-            : <ChannelSuggestion>[];
         if (display.isNotEmpty) {
           setState(() {
             _display.addAll(display);
             _conversation.addAll(conversation);
-            _done = done;
-            _suggestions = suggestions;
           });
-          developer.log('Session restored: ${display.length} messages, done=$done');
           return;
         }
       }
@@ -89,14 +96,8 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_kSessionKey, jsonEncode({
-        'display': _display,
+        'display': _display.map((d) => d.toJson()).toList(),
         'conversation': _conversation,
-        'done': _done,
-        'suggestions': _suggestions.map((s) => {
-          'searchQuery': s.searchQuery,
-          'title': s.title,
-          'reason': s.reason,
-        }).toList(),
       }));
     } catch (e) {
       developer.log('Session save failed: $e');
@@ -111,65 +112,60 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
 
   void _handleResponse(ChannelFinderResponse resp) {
     if (resp.type == ChannelFinderResponseType.suggestions) {
+      // Embed suggestions inline in the chat flow
       setState(() {
-        _suggestions = resp.suggestions!;
-        _done = true;
+        _display.add(_DisplayItem.suggestions(resp.suggestions!));
+        _display.add(_DisplayItem.bubble(
+          role: 'assistant',
+          text: 'Feel free to ask for more channels or tell me what else you like! 🎵',
+        ));
         _loading = false;
       });
-      _addDisplay('assistant', 'Here are 3 channels I think you\'ll love 🎵');
-      _saveSession();
+      // Record in conversation so LLM knows it gave suggestions
+      _conversation.add({'role': 'assistant', 'content': 'Here are 3 channel suggestions: ${resp.suggestions!.map((s) => s.title).join(', ')}. Would you like more?'});
     } else {
-      _addDisplay('assistant', resp.question!);
-      setState(() => _loading = false);
+      setState(() {
+        _display.add(_DisplayItem.bubble(role: 'assistant', text: resp.question!));
+        _loading = false;
+      });
+      _conversation.add({'role': 'assistant', 'content': resp.question!});
     }
-    _scrollToBottom();
-  }
-
-  void _addDisplay(String role, String text) {
-    setState(() => _display.add({'role': role, 'text': text}));
     _saveSession();
+    _scrollToBottom();
   }
 
   Future<void> _send() async {
     final text = _controller.text.trim();
-    if (text.isEmpty || _loading || _done) return;
+    if (text.isEmpty || _loading) return;
     _controller.clear();
-    _questionCount++;
 
-    _addDisplay('user', text);
+    setState(() {
+      _display.add(_DisplayItem.bubble(role: 'user', text: text));
+      _loading = true;
+    });
     _conversation.add({'role': 'user', 'content': text});
+    _saveSession();
 
-    setState(() => _loading = true);
     final resp = await _groq.channelFinderStep(_conversation);
-
-    // record assistant turn in conversation
-    final assistantText = resp.type == ChannelFinderResponseType.question
-        ? resp.question!
-        : 'Here are my suggestions.';
-    _conversation.add({'role': 'assistant', 'content': assistantText});
-
     _handleResponse(resp);
   }
 
   Future<void> _addChannel(ChannelSuggestion suggestion) async {
+    setState(() => _addingTitles.add(suggestion.title));
     final ytService = YouTubeService();
-
-    // Resolve the real channel via YouTube search
-    developer.log('ChannelFinder: resolving "${suggestion.searchQuery}"');
     SavedChannel? channel;
     try {
       channel = await ytService.fetchChannelInfo(suggestion.searchQuery);
-      developer.log('ChannelFinder: resolved → ${channel?.id} "${channel?.title}"');
     } catch (e) {
       developer.log('ChannelFinder: fetchChannelInfo threw: $e');
+    } finally {
+      if (mounted) setState(() => _addingTitles.remove(suggestion.title));
     }
 
     if (channel == null) {
-      developer.log('ChannelFinder: YouTube search returned null for "${suggestion.searchQuery}"');
       if (mounted) _showSnack('Could not find "${suggestion.title}" on YouTube.');
       return;
     }
-
     if (SavedChannelsService.instance.channels.any((c) => c.id == channel!.id)) {
       if (mounted) _showSnack('"${channel.title}" is already in your list.');
       return;
@@ -178,13 +174,8 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
       if (mounted) _showSnack('Maximum ${SavedChannelsService.maxChannels} channels reached.');
       return;
     }
-
     await SavedChannelsService.instance.add(channel);
-    developer.log('ChannelFinder: added "${channel.title}" (${channel.id})');
-    if (mounted) {
-      _showSnack('"${channel.title}" added! ✓');
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   void _showSnack(String msg) {
@@ -211,9 +202,6 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
     setState(() {
       _conversation.clear();
       _display.clear();
-      _suggestions = [];
-      _done = false;
-      _questionCount = 0;
     });
     _kickOff();
   }
@@ -221,40 +209,42 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.orange[600],
-          title: const Text('Channel Finder AI'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: 'Start over',
-              onPressed: _restart,
+      appBar: AppBar(
+        backgroundColor: Colors.orange[600],
+        title: const Text('Channel Finder AI'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Start over',
+            onPressed: _restart,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(12),
+              itemCount: _display.length + (_loading ? 1 : 0),
+              itemBuilder: (context, i) {
+                if (i < _display.length) {
+                  final item = _display[i];
+                  if (item.suggestions != null) return _buildSuggestionsBlock(item.suggestions!);
+                  return _buildBubble(item.role!, item.text!);
+                }
+                return _buildTyping();
+              },
             ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(12),
-                itemCount: _display.length + (_loading ? 1 : 0) + (_done ? 1 : 0),
-                itemBuilder: (context, i) {
-                  if (i < _display.length) return _buildBubble(_display[i]);
-                  if (_loading) return _buildTyping();
-                  if (_done) return _buildSuggestions();
-                  return const SizedBox.shrink();
-                },
-              ),
-            ),
-            if (!_done) _buildInput(),
-          ],
-        ),
+          ),
+          _buildInput(),
+        ],
+      ),
     );
   }
 
-  Widget _buildBubble(Map<String, String> msg) {
-    final isUser = msg['role'] == 'user';
+  Widget _buildBubble(String role, String text) {
+    final isUser = role == 'user';
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -266,7 +256,7 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
-          msg['text']!,
+          text,
           style: TextStyle(color: isUser ? Colors.white : Colors.black87, fontSize: 15),
         ),
       ),
@@ -280,21 +270,18 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
         margin: const EdgeInsets.symmetric(vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(16)),
-        child: const SizedBox(
-          width: 40,
-          height: 16,
-          child: _TypingDots(),
-        ),
+        child: const SizedBox(width: 40, height: 16, child: _TypingDots()),
       ),
     );
   }
 
-  Widget _buildSuggestions() {
+  Widget _buildSuggestionsBlock(List<ChannelSuggestion> suggestions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 8),
-        for (final s in _suggestions) _buildSuggestionCard(s),
+        const SizedBox(height: 4),
+        for (final s in suggestions) _buildSuggestionCard(s),
+        const SizedBox(height: 4),
       ],
     );
   }
@@ -302,8 +289,9 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
   Widget _buildSuggestionCard(ChannelSuggestion s) {
     final alreadyAdded = SavedChannelsService.instance.channels
         .any((c) => c.title.toLowerCase() == s.title.toLowerCase());
+    final isAdding = _addingTitles.contains(s.title);
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Colors.orange[100],
@@ -313,14 +301,13 @@ class _TorahChatScreenState extends State<TorahChatScreen> {
         subtitle: Text(s.reason, style: const TextStyle(fontSize: 13)),
         trailing: alreadyAdded
             ? const Icon(Icons.check_circle, color: Colors.green)
-            : FilledButton(
-                onPressed: () {
-                  developer.log('Add button clicked for: ${s.title}');
-                  _addChannel(s);
-                },
-                style: FilledButton.styleFrom(backgroundColor: Colors.orange[600]),
-                child: const Text('Add'),
-              ),
+            : isAdding
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                : FilledButton(
+                    onPressed: () => _addChannel(s),
+                    style: FilledButton.styleFrom(backgroundColor: Colors.orange[600]),
+                    child: const Text('Add'),
+                  ),
       ),
     );
   }
