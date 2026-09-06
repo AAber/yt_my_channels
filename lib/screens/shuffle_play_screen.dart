@@ -259,7 +259,13 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
             ),
           ],
         ),
-        body: Column(
+        body: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (details.primaryVelocity == null) return;
+            if (details.primaryVelocity! < -300) _playNext();
+            if (details.primaryVelocity! > 300) _playPrev();
+          },
+          child: Column(
           children: [
             // ── Player ──────────────────────────────────────────────────
             Padding(
@@ -326,6 +332,7 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
