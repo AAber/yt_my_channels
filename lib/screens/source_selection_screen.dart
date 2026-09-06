@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/language_provider.dart';
 import '../services/saved_channels_service.dart';
 import '../services/youtube_service.dart';
 import '../services/watch_history_service.dart';
+import '../widgets/edit_button.dart';
 import '../widgets/history_drawer.dart';
 import 'channel_picker_screen.dart';
 import 'youtube_home_screen.dart';
@@ -127,12 +128,13 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             ),
             centerTitle: true,
             automaticallyImplyLeading: false,
-            leading: isHebrew
-                ? IconButton(icon: const Icon(Icons.history), onPressed: _drawerController.open)
-                : null,
+            leading: null,
             actions: [
-              if (!isHebrew)
-                IconButton(icon: const Icon(Icons.history), onPressed: _drawerController.open),
+              IconButton(
+                icon: const Icon(Icons.history_outlined),
+                tooltip: 'Watch History',
+                onPressed: _drawerController.open,
+              ),
               IconButton(
                 icon: const Icon(Icons.shuffle),
                 tooltip: 'Shuffle play all',
@@ -178,15 +180,30 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             ],
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.startDocked,
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TorahChatScreen()),
-            ),
-            backgroundColor: const Color(0xFFE53935),
-            elevation: 6,
-            child: const Icon(Icons.auto_awesome, color: Colors.white),
-          ),
+          floatingActionButton: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (savedChannels.isNotEmpty) ...[
+                FloatingActionButton(
+                  heroTag: 'fab-edit',
+                  mini: true,
+                  onPressed: () => _openPicker(isAddMode: true),
+                  child: const Icon(Icons.edit_outlined),
+                ),
+                const SizedBox(height: 8),
+              ],
+              FloatingActionButton(
+                heroTag: 'fab-ai',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TorahChatScreen()),
+                ),
+                backgroundColor: const Color(0xFFE53935),
+                elevation: 6,
+                child: const Icon(Icons.auto_awesome, color: Colors.white),
+              ),
+            ],
+          ), 
           bottomNavigationBar: _isSearching ? null : _buildBottomBar(),
         );
       },

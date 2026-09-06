@@ -102,6 +102,15 @@ class MyYTApp extends StatelessWidget {
               onSurface: Colors.white,
             ),
             appBarTheme: const AppBarTheme(
+              actionsIconTheme: IconThemeData(
+                color: Colors.white70,
+                size: 26,
+              ),
+              iconTheme: IconThemeData(
+                color: Colors.white70,
+                size: 26,
+              ),
+              titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Colors.white),
               backgroundColor: Color(0xFF0A0A0F),
               foregroundColor: Colors.white,
               elevation: 0,

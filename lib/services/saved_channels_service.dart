@@ -40,6 +40,7 @@ class SavedChannelsService extends ChangeNotifier {
   List<SavedChannel> _channels = [];
   List<SavedChannel> get channels => List.unmodifiable(_channels);
   bool get isEmpty => _channels.isEmpty;
+  bool get isNotEmpty => _channels.isNotEmpty;
 
   Future<void> load() async {
     try {
