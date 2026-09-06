@@ -108,9 +108,9 @@ class GroqClient implements LlmProvider {
   final String _baseUrl = 'https://api.groq.com/openai/v1';
 
   static const List<String> _staticFallbacks = [
-    'openai/gpt-oss-120b',
-    'qwen/qwen3.6-27b',
+    'llama-3.1-70b-versatile',
     'llama-3.1-8b-instant',
+    'gemma2-9b-it',
   ];
 
   final String preferredModel;
@@ -129,8 +129,10 @@ class GroqClient implements LlmProvider {
     return model;
   }
 
-  static bool _isDeprecatedModel(String model) =>
-      model.contains('llama') || model.contains('mixtral');
+  // Deprecate older models that have been superseded.
+  static bool _isDeprecatedModel(String model) => model.contains('llama3-') ||
+      model.contains('mixtral-8x7b') ||
+      model.contains('gemma-7b');
 
   static bool _supportsStrictJsonMode(String model) =>
       model.contains('gpt-oss');
@@ -149,11 +151,29 @@ class GroqClient implements LlmProvider {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         final ids = (data['data'] as List)
             .map((m) => m['id'] as String)
-            .where((id) =>
-                id.contains('qwen') ||
-                (id.contains('openai/gpt-oss') && !id.contains('safeguard')))
+            // Filter out models that are not suitable for general chat.
+            .where((id) => !id.contains('safeguard') && !id.contains('whisper'))
             .toList()
-          ..sort((a, b) => b.compareTo(a));
+          ..sort((a, b) {
+            // Prioritize by capability/size, then recency, then name.
+            int _getScore(String id) {
+              if (id.contains('120b')) return 120;
+              if (id.contains('70b')) return 70;
+              if (id.contains('32b')) return 32;
+              if (id.contains('27b')) return 27;
+              if (id.contains('20b')) return 20;
+              if (id.contains('9b')) return 9;
+              if (id.contains('8b')) return 8;
+              return 0;
+            }
+            final scoreB = _getScore(b);
+            final scoreA = _getScore(a);
+            if (scoreA != scoreB) return scoreB.compareTo(scoreA);
+            // For models of similar size, prefer newer versions (e.g., 3.1 > 3.0)
+            if (b.contains('3.1') && !a.contains('3.1')) return 1;
+            if (a.contains('3.1') && !b.contains('3.1')) return -1;
+            return b.compareTo(a); // Fallback to alphabetical
+          });
         _log('Groq', 'Live models: $ids');
         _liveModels = ids;
         return ids;
