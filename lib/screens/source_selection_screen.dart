@@ -216,52 +216,36 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
     final items = _channels;
     // +1 for the "Add channel" tile
     final count = items.length + 1;
-    final cols = 2;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      const hPad = 16.0, spacing = 12.0;
-      final rows = ((count / cols).ceil()).clamp(1, 5);
-      final tileW = (constraints.maxWidth - hPad * 2 - spacing) / cols;
-      final tileH = (constraints.maxHeight - spacing * (rows - 1)) / rows;
-      final ratio = tileW / tileH;
-
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: hPad, vertical: 8),
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: cols,
-            crossAxisSpacing: spacing,
-            mainAxisSpacing: spacing,
-            childAspectRatio: ratio,
-          ),
-          itemCount: count,
-          itemBuilder: (context, index) {
-            if (index < items.length) {
-              return _ChannelButton(
-                channel: items[index],
-                onTap: () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => YouTubeHomeScreen(
-                      channelId: items[index].id,
-                      title: items[index].title,
-                    ),
-                  ),
-                ),
-                onLongPress: () => _openPicker(isAddMode: true),
-              );
-            }
-            // "+" add tile
-            return _AddChannelButton(
-              onTap: () => _openPicker(isAddMode: true),
-              atMax: items.length >= SavedChannelsService.maxChannels,
-            );
-          },
-        ),
-      );
-    });
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.0, // Make tiles square
+      ),
+      itemCount: count,
+      itemBuilder: (context, index) {
+        if (index < items.length) {
+          return _ChannelButton(
+            channel: items[index],
+            onTap: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => YouTubeHomeScreen(channelId: items[index].id, title: items[index].title),
+              ),
+            ),
+            onLongPress: () => _openPicker(isAddMode: true),
+          );
+        }
+        // "+" add tile
+        return _AddChannelButton(
+          onTap: () => _openPicker(isAddMode: true),
+          atMax: items.length >= SavedChannelsService.maxChannels,
+        );
+      },
+    );
   }
 
   // ── Search results ────────────────────────────────────────────────────────
