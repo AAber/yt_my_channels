@@ -52,7 +52,7 @@ class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
     super.dispose();
   }
 
-  bool get _canProceed => _staged.isNotEmpty || _service.isNotEmpty;
+  bool get _canProceed => _staged.isNotEmpty || (!widget.isAddMode && _service.isNotEmpty);
   bool get _atMax => _staged.length >= SavedChannelsService.maxChannels;
 
   Future<void> _addChannel() async {
@@ -93,9 +93,11 @@ class _ChannelPickerScreenState extends State<ChannelPickerScreen> {
   void _setError(String msg) => setState(() { _error = msg; _loading = false; });
 
   Future<void> _proceed() async {
-    // Merge AI-added channels (added outside this screen) into staged
-    for (final ch in _service.channels) {
-      if (!_staged.any((c) => c.id == ch.id)) _staged.add(ch);
+    // In first-launch flow only: merge AI-added channels the user never saw
+    if (!widget.isAddMode) {
+      for (final ch in _service.channels) {
+        if (!_staged.any((c) => c.id == ch.id)) _staged.add(ch);
+      }
     }
     // Persist: remove channels no longer in staged, add new ones
     final existing = _service.channels.toList();
