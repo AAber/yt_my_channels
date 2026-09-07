@@ -116,10 +116,17 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
       _playerReady = true;
     }
 
+    // Error 150 = playback disabled by video owner; skip silently
+    if (v.hasError && !_endedHandledForCurrentVideo) {
+      _endedHandledForCurrentVideo = true;
+      developer.log('ShufflePlay: skipping video error ${v.errorCode} on ${_queue[_index].video.id}');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _playNext();
+      });
+    }
+
     if (v.playerState == PlayerState.ended && !_endedHandledForCurrentVideo) {
       _endedHandledForCurrentVideo = true;
-      // Defer so we're not mutating state from inside the listener
-      // callback that's also driving this same build/frame.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _playNext();
       });
