@@ -231,6 +231,21 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
 
     final current = _queue[_index];
 
+    // NOTE: intentionally NOT wrapped in YoutubePlayerBuilder.
+    //
+    // YoutubePlayerBuilder auto-switches into a full-screen overlay
+    // whenever it detects a landscape orientation, and expects the user
+    // to either rotate back to portrait or use the system back
+    // button/gesture to exit it. Car head units are permanently
+    // landscape and typically have no back gesture, so that overlay
+    // triggers immediately on load with no way out — appbar, swipe
+    // handler, and all custom controls end up buried underneath it.
+    //
+    // This screen already implements 100% of its own playback UI
+    // (play/pause, skip, slider, queue), so YouTube's own fullscreen
+    // mode isn't needed — keeping the player as a plain widget means it
+    // never leaves this Scaffold, and the appbar/back button/swipe
+    // gestures are always reachable, on every device.
     final player = YoutubePlayer(
       controller: _controller!,
       showVideoProgressIndicator: false,
@@ -239,39 +254,38 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
       },
     );
 
-    return YoutubePlayerBuilder(
-      player: player,
-      builder: (context, player) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Shuffle Play'),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          leading: isHebrew ? null : const BackButton(),
-          actions: [
-            if (isHebrew) const BackButton(),
-            IconButton(
-              icon: const Icon(Icons.ios_share_outlined),
-              tooltip: 'Share now playing',
-              onPressed: _queue.isEmpty ? null : _shareNowPlaying,
-            ),
-            IconButton(
-              icon: const Icon(Icons.playlist_play),
-              tooltip: 'Share full playlist',
-              onPressed: _queue.isEmpty ? null : _sharePlaylist,
-            ),
-            IconButton(
-              icon: const Icon(Icons.shuffle),
-              tooltip: 'Reshuffle',
-              onPressed: _buildQueue,
-            ),
-          ],
-        ),
-        body: GestureDetector(
-          onHorizontalDragEnd: (details) {
-            if (details.primaryVelocity == null) return;
-            if (details.primaryVelocity! < -300) _playNext();
-            if (details.primaryVelocity! > 300) _playPrev();
-          },
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Shuffle Play'),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        leading: isHebrew ? null : const BackButton(),
+        actions: [
+          if (isHebrew) const BackButton(),
+          IconButton(
+            icon: const Icon(Icons.ios_share_outlined),
+            tooltip: 'Share now playing',
+            onPressed: _queue.isEmpty ? null : _shareNowPlaying,
+          ),
+          IconButton(
+            icon: const Icon(Icons.playlist_play),
+            tooltip: 'Share full playlist',
+            onPressed: _queue.isEmpty ? null : _sharePlaylist,
+          ),
+          IconButton(
+            icon: const Icon(Icons.shuffle),
+            tooltip: 'Reshuffle',
+            onPressed: _buildQueue,
+          ),
+        ],
+      ),
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity == null) return;
+          if (details.primaryVelocity! < -300) _playNext();
+          if (details.primaryVelocity! > 300) _playPrev();
+        },
+        child: SingleChildScrollView(
           child: Column(
           children: [
             // ── Player ──────────────────────────────────────────────────
@@ -319,7 +333,8 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
             const Divider(height: 1),
 
             // ── Queue list ───────────────────────────────────────────────
-            Expanded(
+            SizedBox(
+              height: 300, // Adjust this height as needed
               child: ListView.builder(
                 itemCount: _queue.length,
                 itemBuilder: (context, i) {
