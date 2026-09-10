@@ -54,7 +54,7 @@ Future<void> main() async {
     await SavedChannelsService.instance.add(const SavedChannel(
       id: 'UC4JUzmhmiGmPl7uzLpzODyw',
       title: 'Loku The One',
-      avatarUrl: 'asset:assets/icon/sia.png',
+      avatarUrl: 'asset:assets/icon/app_icon.png',
     ));
     developer.log('✓ Default channel added.', name: 'APP_INIT');
   }
