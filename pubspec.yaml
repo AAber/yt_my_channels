@@ -68,6 +68,7 @@ flutter:
   assets:
     - assets/sia_splash.png
     - assets/my-icon.png
+    - assets/icon/sia.jpeg
     - assets/icon/sia.png
     - assets/icon/taylor.png
     - assets/icon/ed.png
