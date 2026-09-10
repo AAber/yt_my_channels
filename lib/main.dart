@@ -47,6 +47,18 @@ Future<void> main() async {
   }
   developer.log('✓ SavedChannels: ${SavedChannelsService.instance.channels.length} channels', name: 'APP_INIT');
 
+  // If no channels are loaded (from storage or deeplink), add a default one.
+  // This ensures the app is never empty on first launch.
+  if (SavedChannelsService.instance.isEmpty) {
+    developer.log('No channels found, adding default channel.', name: 'APP_INIT');
+    await SavedChannelsService.instance.add(const SavedChannel(
+      id: 'UC4JUzmhmiGmPl7uzLpzODyw',
+      title: 'Loku The One',
+      avatarUrl: 'https://yt3.googleusercontent.com/ytc/AIdro_k205ve_Yk_2gbeT_iI3x9025yS5-aI-3Oa_g=s176-c-k-c0x00ffffff-no-rj',
+    ));
+    developer.log('✓ Default channel added.', name: 'APP_INIT');
+  }
+
   developer.log('▶ runApp()', name: 'APP_INIT');
   runApp(
     MultiProvider(
