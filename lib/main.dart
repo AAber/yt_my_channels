@@ -54,7 +54,7 @@ Future<void> main() async {
     await SavedChannelsService.instance.add(const SavedChannel(
       id: 'UC4JUzmhmiGmPl7uzLpzODyw',
       title: 'Loku The One',
-      avatarUrl: 'https://yt3.googleusercontent.com/ytc/AIdro_k205ve_Yk_2gbeT_iI3x9025yS5-aI-3Oa_g=s176-c-k-c0x00ffffff-no-rj',
+      avatarUrl: 'asset:assets/icon/sia.png',
     ));
     developer.log('✓ Default channel added.', name: 'APP_INIT');
   }
@@ -78,8 +78,12 @@ class MyYTApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<LanguageProvider>(
       builder: (context, languageProvider, child) {
-        // Route: first launch → ChannelPickerScreen, returning user → SourceSelectionScreen
-        final home = SavedChannelsService.instance.isEmpty
+        // The default channel is added *before* this build method runs.
+        // So, if the service is not empty on the very first build, it means
+        // we have just added our default channel and should show the main grid.
+        // Otherwise, if it's truly empty (e.g., user deleted the last channel),
+        // we show the picker.
+        final home = context.watch<SavedChannelsService>().isEmpty
             ? const ChannelPickerScreen()
             : const SourceSelectionScreen();
 
@@ -96,9 +100,9 @@ class MyYTApp extends StatelessWidget {
           locale: languageProvider.locale,
           builder: (context, child) {
             return Directionality(
-              textDirection: languageProvider.locale.languageCode == 'en'
-                  ? TextDirection.rtl
-                  : TextDirection.ltr,
+              textDirection: languageProvider.locale.languageCode == 'he'
+                  ? TextDirection.rtl // Hebrew is RTL
+                  : TextDirection.ltr, // English and others are LTR
               child: child!,
             );
           },
