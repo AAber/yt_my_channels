@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -217,7 +218,16 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
     // +1 for the "Add channel" tile
     final count = items.length + 1;
 
-    return GridView.builder(
+    return Column(
+      children: [
+        if (items.length >= 2)
+          _ShuffleCountdownButton(
+            onShuffle: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ShufflePlayScreen()),
+            ),
+          ),
+        Expanded(child: GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -245,6 +255,8 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
           atMax: items.length >= SavedChannelsService.maxChannels,
         );
       },
+    )),
+      ],
     );
   }
 
@@ -514,4 +526,100 @@ class _SearchResult {
   final YouTubeVideo video;
   final SavedChannel channel;
   const _SearchResult({required this.video, required this.channel});
+}
+
+// ── Shuffle countdown button ──────────────────────────────────────────────────
+
+class _ShuffleCountdownButton extends StatefulWidget {
+  final VoidCallback onShuffle;
+  const _ShuffleCountdownButton({required this.onShuffle});
+
+  @override
+  State<_ShuffleCountdownButton> createState() => _ShuffleCountdownButtonState();
+}
+
+class _ShuffleCountdownButtonState extends State<_ShuffleCountdownButton> {
+  int _seconds = 10;
+  Timer? _timer;
+  bool _dismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() => _seconds--);
+      if (_seconds <= 0) {
+        t.cancel();
+        widget.onShuffle();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_dismissed) return const SizedBox.shrink();
+    return GestureDetector(
+      onHorizontalDragEnd: (_) => setState(() {
+        _timer?.cancel();
+        _dismissed = true;
+      }),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        child: GestureDetector(
+          onTap: () {
+            _timer?.cancel();
+            widget.onShuffle();
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFB71C1C), Color(0xFFE53935)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFE53935).withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.shuffle, color: Colors.white, size: 28),
+                const SizedBox(width: 12),
+                const Text('Shuffle Play',
+                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 16),
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text('$_seconds',
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -81,10 +81,6 @@ class GroqModelResolver {
   }
 }
 
-abstract class LlmProvider {
-  Future<String> call(List<Map<String, String>> messages);
-}
-
 class AgentConfig {
   final String groqApiKey;
   final String model;
