@@ -33,6 +33,13 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   Timer? _saveTimer;
   final WatchHistoryService _historyService = WatchHistoryService();
 
+  // Bandwidth tracking — updated every second via _saveTimer
+  Duration _lastPosition = Duration.zero;
+  double _watchedSeconds = 0;
+  String? _bandwidthMessage;
+  // 144p ≈ 0.1 Mbps video + 0.065 Mbps audio
+  static const double _kBitsPerSecond = (0.1 + 0.065) * 1024 * 1024;
+
   // Small preview size. YouTube picks the stream resolution based on the
   // size of the player, so a tiny player => 144p/240p video => far less data.
   static const double _previewWidth = 192; // 16:9 -> 108 high
@@ -46,9 +53,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
   void _initializePlayer() {
     try {
-      developer.log(
-          'YT_PLAYER: Initializing player for video ID: ${widget.video.id}');
-
       _controller = YoutubePlayerController(
         initialVideoId: widget.video.id,
         flags: const YoutubePlayerFlags(
@@ -62,7 +66,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
         ),
       )..addListener(_playerListener);
     } catch (e) {
-      developer.log('YT_ERROR: Failed to initialize player: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -79,10 +82,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     try {
       final web = _controller.value.webViewController;
       web?.evaluateJavascript(source: "player.setPlaybackQuality('tiny');");
-      developer.log('YT_PLAYER: Requested lowest playback quality');
-    } catch (e) {
-      developer.log('YT_PLAYER: Could not set quality: $e');
-    }
+    } catch (_) {}
   }
 
   void _playerListener() {
@@ -95,14 +95,20 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       _applyLowQuality();
     }
 
+    // Accumulate watched seconds from position deltas
+    final pos = _controller.value.position;
+    if (_controller.value.isPlaying && pos > _lastPosition) {
+      _watchedSeconds += (pos - _lastPosition).inMilliseconds / 1000.0;
+      _updateBandwidthChip();
+    }
+    _lastPosition = pos;
+
     if (_controller.value.errorCode != 0) {
       final errorCode = _controller.value.errorCode;
       String errorMessage;
       if (errorCode == 101 || errorCode == 150) {
         errorMessage =
             'This video is restricted from playing in embedded players.';
-        developer.log(
-            'YT_ERROR: Video restricted from embedding. Video ID: ${widget.video.id}, Error Code: $errorCode');
       } else {
         switch (errorCode) {
           case 2:
@@ -118,8 +124,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
             errorMessage =
                 'An unknown error occurred with the player (code: $errorCode).';
         }
-        developer.log(
-            'YT_ERROR: Player error. Code: $errorCode, Video ID: ${widget.video.id}');
       }
 
       setState(() {
@@ -148,11 +152,23 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     }
   }
 
+  void _updateBandwidthChip() {
+    if (_watchedSeconds < 1 || !mounted) return;
+    final mb = (_kBitsPerSecond * _watchedSeconds) / 8 / (1024 * 1024);
+    setState(() => _bandwidthMessage = '~${mb.toStringAsFixed(2)} MB used (low-quality)');
+  }
+
+  void _logFinalBandwidth() {
+    if (_watchedSeconds < 1) return;
+    final mb = (_kBitsPerSecond * _watchedSeconds) / 8 / (1024 * 1024);
+    developer.log('YT_BANDWIDTH: ${mb.toStringAsFixed(2)} MB | ${_watchedSeconds.toStringAsFixed(0)}s | low-quality | "${widget.video.title}"');
+  }
+
   @override
   void dispose() {
     _saveTimer?.cancel();
+    _logFinalBandwidth();
     if (_isPlayerReady) _saveProgress();
-    developer.log('YT_PLAYER: Disposing player controller');
     _controller.removeListener(_playerListener);
     _controller.dispose();
     super.dispose();
@@ -170,7 +186,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       aspectRatio: 16 / 9,
       showVideoProgressIndicator: false,
       onReady: () {
-        developer.log('YT_PLAYER: Player is ready');
         if (mounted) {
           setState(() => _isPlayerReady = true);
           _applyLowQuality();
@@ -183,7 +198,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           );
         }
       },
-      onEnded: (metaData) => developer.log('YT_PLAYER: Video ended.'),
+      onEnded: (metaData) => _logFinalBandwidth(),
     );
 
     return Scaffold(
@@ -218,6 +233,20 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           ),
           if (!_hasError)
             _ControlsBar(controller: _controller, isReady: _isPlayerReady),
+          if (_bandwidthMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.data_usage, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    _bandwidthMessage!,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
 
           Padding(
             padding: const EdgeInsets.all(16),
@@ -341,7 +370,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           const SizedBox(height: 4),
           TextButton.icon(
             onPressed: () {
-              developer.log('YT_PLAYER: Retrying to play video');
               setState(() {
                 _hasError = false;
                 _errorMessage = null;
