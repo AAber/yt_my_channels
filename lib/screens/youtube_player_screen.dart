@@ -28,15 +28,20 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   late YoutubePlayerController _controller;
   bool _isPlayerReady = false;
   bool _hasError = false;
+  bool _lowQualityApplied = false;
   String? _errorMessage;
   Timer? _saveTimer;
   final WatchHistoryService _historyService = WatchHistoryService();
 
+  // Small preview size. YouTube picks the stream resolution based on the
+  // size of the player, so a tiny player => 144p/240p video => far less data.
+  static const double _previewWidth = 192; // 16:9 -> 108 high
+
   @override
   void initState() {
     super.initState();
-    _initializePlayer();           // sync — no dependency on history
-    _historyService.init();        // fire-and-forget
+    _initializePlayer();
+    _historyService.init();
   }
 
   void _initializePlayer() {
@@ -52,6 +57,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           hideControls: true,
           disableDragSeek: false,
           enableCaption: false,
+          forceHD: false, // never request HD
           showLiveFullscreenButton: false,
         ),
       )..addListener(_playerListener);
@@ -66,8 +72,28 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     }
   }
 
+  /// Ask the embedded YouTube iframe for the lowest quality ("tiny" = 144p).
+  /// This is a hint; YouTube may ignore it, but the small player size above
+  /// makes adaptive streaming choose a low resolution anyway.
+  void _applyLowQuality() {
+    try {
+      final web = _controller.value.webViewController;
+      web?.evaluateJavascript(source: "player.setPlaybackQuality('tiny');");
+      developer.log('YT_PLAYER: Requested lowest playback quality');
+    } catch (e) {
+      developer.log('YT_PLAYER: Could not set quality: $e');
+    }
+  }
+
   void _playerListener() {
     if (!_isPlayerReady || !mounted) return;
+
+    // Re-apply once playback actually starts (quality hints set before the
+    // stream is loaded are sometimes dropped).
+    if (!_lowQualityApplied && _controller.value.isPlaying) {
+      _lowQualityApplied = true;
+      _applyLowQuality();
+    }
 
     if (_controller.value.errorCode != 0) {
       final errorCode = _controller.value.errorCode;
@@ -111,7 +137,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   Future<void> _saveProgress() async {
     if (!_isPlayerReady) return;
     final position = _controller.value.position;
-    // YouTube player doesn't expose total duration easily; use metaData
     final totalSeconds = _controller.metadata.duration.inSeconds;
     if (totalSeconds > 0) {
       await _historyService.saveYouTube(
@@ -127,41 +152,10 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   void dispose() {
     _saveTimer?.cancel();
     if (_isPlayerReady) _saveProgress();
-    _removeFsExitButton();
     developer.log('YT_PLAYER: Disposing player controller');
     _controller.removeListener(_playerListener);
     _controller.dispose();
     super.dispose();
-  }
-
-  OverlayEntry? _fsOverlay;
-
-  void _showFsExitButton() {
-    _fsOverlay?.remove();
-    _fsOverlay = OverlayEntry(
-      builder: (_) => Positioned(
-        top: 16,
-        right: 16,
-        child: SafeArea(
-          child: Material(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(20),
-            child: IconButton(
-              icon: const Icon(Icons.fullscreen_exit, color: Colors.white),
-              onPressed: () {
-                _controller.toggleFullScreenMode();
-              },
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(_fsOverlay!);
-  }
-
-  void _removeFsExitButton() {
-    _fsOverlay?.remove();
-    _fsOverlay = null;
   }
 
   @override
@@ -172,11 +166,14 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
     final player = YoutubePlayer(
       controller: _controller,
+      width: _previewWidth,
+      aspectRatio: 16 / 9,
       showVideoProgressIndicator: false,
       onReady: () {
         developer.log('YT_PLAYER: Player is ready');
         if (mounted) {
           setState(() => _isPlayerReady = true);
+          _applyLowQuality();
           if (widget.resumePosition != null) {
             _controller.seekTo(widget.resumePosition!);
           }
@@ -189,11 +186,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       onEnded: (metaData) => developer.log('YT_PLAYER: Video ended.'),
     );
 
-    return YoutubePlayerBuilder(
-      onEnterFullScreen: _showFsExitButton,
-      onExitFullScreen: _removeFsExitButton,
-      player: player,
-      builder: (context, player) => Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text(
           widget.video.title,
@@ -207,27 +200,30 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       ),
       body: ListView(
         children: [
-          // YouTube Player
+          // Small, low-bandwidth video preview (audio plays in full)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: _hasError
-                  ? AspectRatio(aspectRatio: 16 / 9, child: _buildErrorWidget())
-                  : player,
+            child: Center(
+              child: SizedBox(
+                width: _previewWidth,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: _hasError
+                      ? AspectRatio(
+                          aspectRatio: 16 / 9, child: _buildErrorWidget())
+                      : player,
+                ),
+              ),
             ),
           ),
-          // Controls below video
           if (!_hasError)
             _ControlsBar(controller: _controller, isReady: _isPlayerReady),
 
-          // Video Info
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Fallback link if player fails
                 Card(
                   color: _hasError ? Colors.red.shade50 : Colors.blue.shade50,
                   child: InkWell(
@@ -273,9 +269,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-                // Title
                 Text(
                   widget.video.title,
                   style: const TextStyle(
@@ -283,28 +277,16 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
-                // Published date
                 Text(
                   _formatDate(widget.video.publishedAt),
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-
                 const SizedBox(height: 16),
-
-                // Description
                 if (widget.video.description.isNotEmpty) ...[
                   const Text(
                     'תיאור:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -316,7 +298,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
             ),
           ),
         ],
-        ),
       ),
     );
   }
@@ -351,42 +332,25 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: Colors.red.shade400,
-          ),
-          const SizedBox(height: 16),
+          Icon(Icons.error_outline, size: 28, color: Colors.red.shade400),
+          const SizedBox(height: 4),
           Text(
             'שגיאה בטעינת הסרטון',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
-          if (_errorMessage != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage!,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
+          const SizedBox(height: 4),
+          TextButton.icon(
             onPressed: () {
               developer.log('YT_PLAYER: Retrying to play video');
               setState(() {
                 _hasError = false;
                 _errorMessage = null;
+                _lowQualityApplied = false;
               });
               _controller.load(widget.video.id);
             },
-            icon: const Icon(Icons.refresh),
-            label: const Text('נסה שוב'),
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('נסה שוב', style: TextStyle(fontSize: 11)),
           ),
         ],
       ),
@@ -414,7 +378,9 @@ class _ControlsBarState extends State<_ControlsBar> {
     widget.controller.addListener(_update);
   }
 
-  void _update() { if (mounted) setState(() {}); }
+  void _update() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
@@ -459,7 +425,9 @@ class _ControlsBarState extends State<_ControlsBar> {
                 const Spacer(),
                 IconButton(
                   icon: Icon(
-                    isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                    isPlaying
+                        ? Icons.pause_circle_filled
+                        : Icons.play_circle_filled,
                     size: 40,
                   ),
                   onPressed: widget.isReady
@@ -475,7 +443,8 @@ class _ControlsBarState extends State<_ControlsBar> {
                   value: _speed,
                   underline: const SizedBox(),
                   items: _speeds
-                      .map((s) => DropdownMenuItem(value: s, child: Text('${s}x')))
+                      .map((s) =>
+                          DropdownMenuItem(value: s, child: Text('${s}x')))
                       .toList(),
                   onChanged: widget.isReady
                       ? (s) {
@@ -485,12 +454,8 @@ class _ControlsBarState extends State<_ControlsBar> {
                         }
                       : null,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.fullscreen),
-                  onPressed: widget.isReady
-                      ? () => widget.controller.toggleFullScreenMode()
-                      : null,
-                ),
+                // Fullscreen button removed: fullscreen makes YouTube stream
+                // high-resolution video again.
               ],
             ),
           ),
