@@ -23,6 +23,7 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
   int _index = 0;
   bool _loading = true;
   String? _error;
+  bool _fullQuality = false;
 
   // A single controller lives for the whole session. We swap videos with
   // controller.load(id) instead of disposing/recreating the controller —
@@ -89,11 +90,12 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
     if (_controller == null) {
       _controller = YoutubePlayerController(
         initialVideoId: videoId,
-        flags: const YoutubePlayerFlags(
+        flags: YoutubePlayerFlags(
           autoPlay: true,
           mute: false,
           hideControls: true,
           enableCaption: false,
+          forceHD: _fullQuality,
           showLiveFullscreenButton: false,
         ),
       )..addListener(_onPlayerEvent);
@@ -133,6 +135,16 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
     }
 
     setState(() {});
+  }
+
+  void _toggleQuality() {
+    final currentId = _queue[_index].video.id;
+    _controller?.removeListener(_onPlayerEvent);
+    _controller?.dispose();
+    _controller = null;
+    _playerReady = false;
+    setState(() => _fullQuality = !_fullQuality);
+    _loadVideo(currentId);
   }
 
   // Share ↑ — the app link with OG preview
@@ -279,6 +291,16 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _toggleQuality,
+        backgroundColor: _fullQuality ? Colors.orange : Colors.grey[700],
+        icon: Icon(_fullQuality ? Icons.hd : Icons.sd, color: Colors.white),
+        label: Text(
+          _fullQuality ? 'Full quality' : 'Low quality',
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: GestureDetector(
         onHorizontalDragEnd: (details) {
           if (details.primaryVelocity == null) return;

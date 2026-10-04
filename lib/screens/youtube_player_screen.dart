@@ -28,9 +28,22 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   late YoutubePlayerController _controller;
   bool _isPlayerReady = false;
   bool _hasError = false;
+  bool _lowQualityApplied = false;
   String? _errorMessage;
   Timer? _saveTimer;
   final WatchHistoryService _historyService = WatchHistoryService();
+
+  // Bandwidth tracking
+  Duration _lastPosition = Duration.zero;
+  double _watchedSeconds = 0;
+  String? _bandwidthMessage;
+  bool _fullQuality = false;
+  // 144p ≈ 0.165 Mbps | 720p ≈ 2.628 Mbps
+  double get _kBitsPerSecond => _fullQuality
+      ? (2.5 + 0.128) * 1024 * 1024
+      : (0.1 + 0.065) * 1024 * 1024;
+
+  static const double _previewWidth = 192;
 
   @override
   void initState() {
@@ -41,9 +54,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
   void _initializePlayer() {
     try {
-      developer.log(
-          'YT_PLAYER: Initializing player for video ID: ${widget.video.id}');
-
       _controller = YoutubePlayerController(
         initialVideoId: widget.video.id,
         flags: const YoutubePlayerFlags(
@@ -52,11 +62,11 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           hideControls: true,
           disableDragSeek: false,
           enableCaption: false,
+          forceHD: false,
           showLiveFullscreenButton: false,
         ),
       )..addListener(_playerListener);
     } catch (e) {
-      developer.log('YT_ERROR: Failed to initialize player: $e');
       if (mounted) {
         setState(() {
           _hasError = true;
@@ -69,14 +79,24 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
   void _playerListener() {
     if (!_isPlayerReady || !mounted) return;
 
+    final pos = _controller.value.position;
+    if (_controller.value.isPlaying && pos > _lastPosition) {
+      _watchedSeconds += (pos - _lastPosition).inMilliseconds / 1000.0;
+      _updateBandwidthChip();
+    }
+    _lastPosition = pos;
+
+    if (!_lowQualityApplied && _controller.value.isPlaying && !_fullQuality) {
+      _lowQualityApplied = true;
+      _applyLowQuality();
+    }
+
     if (_controller.value.errorCode != 0) {
       final errorCode = _controller.value.errorCode;
       String errorMessage;
       if (errorCode == 101 || errorCode == 150) {
         errorMessage =
             'This video is restricted from playing in embedded players.';
-        developer.log(
-            'YT_ERROR: Video restricted from embedding. Video ID: ${widget.video.id}, Error Code: $errorCode');
       } else {
         switch (errorCode) {
           case 2:
@@ -92,8 +112,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
             errorMessage =
                 'An unknown error occurred with the player (code: $errorCode).';
         }
-        developer.log(
-            'YT_ERROR: Player error. Code: $errorCode, Video ID: ${widget.video.id}');
       }
 
       setState(() {
@@ -123,12 +141,33 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     }
   }
 
+  void _applyLowQuality() {
+    try {
+      _controller.value.webViewController
+          ?.evaluateJavascript(source: "player.setPlaybackQuality('tiny');");
+    } catch (_) {}
+  }
+
+  void _updateBandwidthChip() {
+    if (_watchedSeconds < 1 || !mounted) return;
+    final mb = (_kBitsPerSecond * _watchedSeconds) / 8 / (1024 * 1024);
+    final quality = _fullQuality ? 'full-quality' : 'low-quality';
+    setState(() => _bandwidthMessage = '~${mb.toStringAsFixed(2)} MB used ($quality)');
+  }
+
+  void _logFinalBandwidth() {
+    if (_watchedSeconds < 1) return;
+    final mb = (_kBitsPerSecond * _watchedSeconds) / 8 / (1024 * 1024);
+    final quality = _fullQuality ? 'full-quality' : 'low-quality';
+    developer.log('YT_BANDWIDTH: ${mb.toStringAsFixed(2)} MB | ${_watchedSeconds.toStringAsFixed(0)}s | $quality | "${widget.video.title}"');
+  }
+
   @override
   void dispose() {
     _saveTimer?.cancel();
+    _logFinalBandwidth();
     if (_isPlayerReady) _saveProgress();
     _removeFsExitButton();
-    developer.log('YT_PLAYER: Disposing player controller');
     _controller.removeListener(_playerListener);
     _controller.dispose();
     super.dispose();
@@ -172,9 +211,10 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
     final player = YoutubePlayer(
       controller: _controller,
+      width: _fullQuality ? null : _previewWidth,
+      aspectRatio: 16 / 9,
       showVideoProgressIndicator: false,
       onReady: () {
-        developer.log('YT_PLAYER: Player is ready');
         if (mounted) {
           setState(() => _isPlayerReady = true);
           if (widget.resumePosition != null) {
@@ -186,7 +226,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           );
         }
       },
-      onEnded: (metaData) => developer.log('YT_PLAYER: Video ended.'),
+      onEnded: (metaData) => _logFinalBandwidth(),
     );
 
     return YoutubePlayerBuilder(
@@ -220,6 +260,20 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           // Controls below video
           if (!_hasError)
             _ControlsBar(controller: _controller, isReady: _isPlayerReady),
+          if (_bandwidthMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.data_usage, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    _bandwidthMessage!,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
 
           // Video Info
           Padding(
@@ -378,7 +432,6 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
           const SizedBox(height: 16),
           ElevatedButton.icon(
             onPressed: () {
-              developer.log('YT_PLAYER: Retrying to play video');
               setState(() {
                 _hasError = false;
                 _errorMessage = null;
