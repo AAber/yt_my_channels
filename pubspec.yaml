@@ -89,6 +89,10 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#000000"
   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  macos:
+    generate: true
+    image_path: "assets/my-icon.png"
+    remove_alpha_macos: true
 
 flutter_native_splash:
   color: "#000000"
