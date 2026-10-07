@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:provider/provider.dart';
@@ -229,11 +230,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
       onEnded: (metaData) => _logFinalBandwidth(),
     );
 
-    return YoutubePlayerBuilder(
-      onEnterFullScreen: _showFsExitButton,
-      onExitFullScreen: _removeFsExitButton,
-      player: player,
-      builder: (context, player) => Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         title: Text(
           widget.video.title,
@@ -370,8 +367,16 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
             ),
           ),
         ],
-        ),
       ),
+    );
+
+    if (defaultTargetPlatform == TargetPlatform.macOS) return scaffold;
+
+    return YoutubePlayerBuilder(
+      onEnterFullScreen: _showFsExitButton,
+      onExitFullScreen: _removeFsExitButton,
+      player: player,
+      builder: (context, player) => scaffold,
     );
   }
 
