@@ -7,6 +7,7 @@ import '../l10n/language_provider.dart';
 import '../services/saved_channels_service.dart';
 import '../services/deeplink_service.dart';
 import '../services/youtube_service.dart';
+import '../services/media_button_service.dart';
 import 'dart:developer' as developer;
 
 class ShufflePlayScreen extends StatefulWidget {
@@ -40,10 +41,12 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
   void initState() {
     super.initState();
     _buildQueue();
+    MediaButtonService.instance.register(_onMediaButton);
   }
 
   @override
   void dispose() {
+    MediaButtonService.instance.unregister();
     _controller?.removeListener(_onPlayerEvent);
     _controller?.dispose();
     super.dispose();
@@ -190,6 +193,14 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
     if (_queue.isEmpty || i == _index) return;
     setState(() => _index = i);
     _loadVideo(_queue[i].video.id);
+  }
+
+  void _onMediaButton(String action) {
+    switch (action) {
+      case 'play_pause': _togglePlayPause(); break;
+      case 'next':       _playNext();        break;
+      case 'previous':   _playPrev();        break;
+    }
   }
 
   void _togglePlayPause() {
