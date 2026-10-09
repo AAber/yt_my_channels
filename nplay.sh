@@ -5,6 +5,7 @@
 
 set -e  # Exit on any error
 
+current_full_version=$(grep "version:" pubspec.yaml | sed 's/version: //')
 echo "Update the version and the script will increment the build"
 sleep 3
 vi pubspec.yaml
@@ -12,7 +13,6 @@ echo Ready to go? Enter to continue Ctrl-C to cancel...
 
 # Configuration
 # Auto-detect current version from pubspec.yaml
-current_full_version=$(grep "version:" pubspec.yaml | sed 's/version: //')
 version_base=$(echo $current_full_version | cut -d'+' -f1)
 build_number=$(echo $current_full_version | cut -d'+' -f2)
 next_build_number=$((build_number + 1))
