@@ -8,6 +8,7 @@ import 'dart:developer' as developer;
 import '../l10n/language_provider.dart';
 import '../services/youtube_service.dart';
 import '../services/watch_history_service.dart';
+import '../services/media_button_service.dart';
 
 class YouTubePlayerScreen extends StatefulWidget {
   final YouTubeVideo video;
@@ -51,6 +52,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     super.initState();
     _initializePlayer();           // sync — no dependency on history
     _historyService.init();        // fire-and-forget
+    MediaButtonService.instance.register(_onMediaButton);
   }
 
   void _initializePlayer() {
@@ -142,6 +144,15 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
     }
   }
 
+  void _onMediaButton(String action) {
+    if (!_isPlayerReady) return;
+    switch (action) {
+      case 'play_pause':
+        _controller.value.isPlaying ? _controller.pause() : _controller.play();
+        break;
+    }
+  }
+
   void _applyLowQuality() {
     try {
       _controller.value.webViewController
@@ -165,6 +176,7 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
 
   @override
   void dispose() {
+    MediaButtonService.instance.unregister();
     _saveTimer?.cancel();
     _logFinalBandwidth();
     if (_isPlayerReady) _saveProgress();
