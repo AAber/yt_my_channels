@@ -1,3 +1,8 @@
+Add a playlist screen to this flutter app.
+Allow the user to add new playlists with a name and from the shuffle screen add a song to the existing or new playlists
+The play screen should also have a new ability to add the videos to the new playlists
+Let's make a plan and implement
+
 
 Add default first channel to resolve ai adding fails after first install
 URL: https://www.youtube.com/@LokuTheOne
