@@ -6,17 +6,18 @@
 set -e  # Exit on any error
 
 current_full_version=$(grep "version:" pubspec.yaml | sed 's/version: //')
-echo "Update the version and the script will increment the build"
-sleep 3
-vi pubspec.yaml
-echo Ready to go? Enter to continue Ctrl-C to cancel...
+new_ver=$(grep "version:" pubspec.yaml | sed 's/version: //'|awk -F+ '{print $1}')
 
 # Configuration
 # Auto-detect current version from pubspec.yaml
 version_base=$(echo $current_full_version | cut -d'+' -f1)
+ver_major=$(echo $version_base|awk -F\. '{print $1 "." $2}')
+ver_patch=$(echo $version_base|awk -F\. '{print $3}')
+next_patch=$((ver_patch + 1))
+next_ver=$(echo $ver_major"."$next_patch)
 build_number=$(echo $current_full_version | cut -d'+' -f2)
 next_build_number=$((build_number + 1))
-next_full_version="$version_base+$next_build_number"
+next_full_version="$next_ver+$next_build_number"
 
 BUILD_DIR="~/yt_my_channels-appbundle"
 KEYSTORE_SOURCE="~/_zync/israel/upload-keystore.jks"
