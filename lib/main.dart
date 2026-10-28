@@ -11,6 +11,7 @@ import 'screens/source_selection_screen.dart';
 import 'services/saved_channels_service.dart';
 import 'services/deeplink_service.dart';
 import 'services/media_button_service.dart';
+import 'services/playlist_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ Future<void> main() async {
 
   // Load saved channels before deciding which screen to show
   await SavedChannelsService.instance.load();
+  await PlaylistService.instance.load();
   MediaButtonService.instance.init();
 
   // Check if app was opened via a share deeplink
@@ -67,6 +69,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider.value(value: SavedChannelsService.instance),
+        ChangeNotifierProvider.value(value: PlaylistService.instance),
       ],
       child: const MyYTApp(),
     ),

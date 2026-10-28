@@ -9,6 +9,8 @@ import '../l10n/language_provider.dart';
 import '../services/youtube_service.dart';
 import '../services/watch_history_service.dart';
 import '../services/media_button_service.dart';
+import '../services/playlist_service.dart';
+import '../widgets/add_to_playlist_sheet.dart';
 
 class YouTubePlayerScreen extends StatefulWidget {
   final YouTubeVideo video;
@@ -252,7 +254,17 @@ class _YouTubePlayerScreenState extends State<YouTubePlayerScreen> {
         centerTitle: true,
         automaticallyImplyLeading: false,
         leading: isHebrew ? null : const BackButton(),
-        actions: isHebrew ? [const BackButton()] : null,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.playlist_add),
+            tooltip: 'Add to playlist',
+            onPressed: () => showAddToPlaylistSheet(
+              context,
+              PlaylistVideo.fromYouTubeVideo(widget.video, widget.channelTitle),
+            ),
+          ),
+          if (isHebrew) const BackButton(),
+        ],
       ),
       body: ListView(
         children: [

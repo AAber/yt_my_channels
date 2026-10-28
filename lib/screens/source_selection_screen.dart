@@ -16,6 +16,7 @@ import 'youtube_home_screen.dart';
 import 'youtube_player_screen.dart';
 import 'torah_chat_screen.dart';
 import 'shuffle_play_screen.dart';
+import 'playlist_screen.dart';
 
 class SourceSelectionScreen extends StatefulWidget {
   const SourceSelectionScreen({super.key});
@@ -131,6 +132,14 @@ class _SourceSelectionScreenState extends State<SourceSelectionScreen> {
             automaticallyImplyLeading: false,
             leading: null,
             actions: [
+              IconButton(
+                icon: const Icon(Icons.queue_music),
+                tooltip: 'Playlists',
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PlaylistScreen()),
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.history_outlined),
                 tooltip: 'Watch History',

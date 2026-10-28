@@ -8,6 +8,8 @@ import '../services/saved_channels_service.dart';
 import '../services/deeplink_service.dart';
 import '../services/youtube_service.dart';
 import '../services/media_button_service.dart';
+import '../services/playlist_service.dart';
+import '../widgets/add_to_playlist_sheet.dart';
 import 'dart:developer' as developer;
 
 class ShufflePlayScreen extends StatefulWidget {
@@ -392,6 +394,14 @@ class _ShufflePlayScreenState extends State<ShufflePlayScreen> {
                                 : FontWeight.normal)),
                     subtitle: Text(item.channelTitle,
                         style: const TextStyle(fontSize: 11)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.playlist_add, size: 20),
+                      onPressed: () => showAddToPlaylistSheet(
+                        context,
+                        PlaylistVideo.fromYouTubeVideo(
+                            item.video, item.channelTitle),
+                      ),
+                    ),
                     onTap: () => _playAt(i),
                   );
                 },
