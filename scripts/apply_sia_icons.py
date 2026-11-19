@@ -2,7 +2,7 @@
 """
 apply_sia_icons.py
 -------------------
-Directly writes Sia's image into all Android mipmap ic_launcher.png files
+Directly writes assets/my-icon.png into all Android mipmap ic_launcher.png files
 and the iOS AppIcon assets, bypassing flutter_launcher_icons.
 
 Usage:
@@ -12,7 +12,7 @@ Usage:
 from PIL import Image
 import os
 
-SRC = os.path.join(os.path.dirname(__file__), "..", "assets", "sia.jpg")
+SRC = os.path.join(os.path.dirname(__file__), "..", "assets", "my-icon.png")
 RES = os.path.join(os.path.dirname(__file__), "..", "android", "app", "src", "main", "res")
 IOS_ICONS = os.path.join(os.path.dirname(__file__), "..", "ios", "Runner", "Assets.xcassets", "AppIcon.appiconset")
 
@@ -46,14 +46,14 @@ IOS_SIZES = {
 
 
 def make_square(img: Image.Image) -> Image.Image:
-    """Crop top 18% to hide face, then square-crop centered."""
+    """Center-crop to square if needed."""
     w, h = img.size
-    top = int(h * 0.18)
-    cropped = img.crop((0, top, w, h))
-    cw, ch = cropped.size
-    side = min(cw, ch)
-    left = (cw - side) // 2
-    return cropped.crop((left, 0, left + side, side))
+    if w == h:
+        return img
+    side = min(w, h)
+    left = (w - side) // 2
+    top = (h - side) // 2
+    return img.crop((left, top, left + side, top + side))
 
 
 def main():
@@ -68,6 +68,10 @@ def main():
         if os.path.exists(os.path.dirname(out_path)):
             square.resize((size, size), Image.LANCZOS).convert("RGB").save(out_path)
             print(f"  {folder}/ic_launcher.png ({size}x{size})")
+            round_path = os.path.join(RES, folder, "ic_launcher_round.png")
+            if os.path.exists(round_path):
+                square.resize((size, size), Image.LANCZOS).convert("RGB").save(round_path)
+                print(f"  {folder}/ic_launcher_round.png ({size}x{size})")
 
     # iOS icons
     print("\niOS:")

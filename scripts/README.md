@@ -98,9 +98,9 @@ flutter run
 
 ## How to update the splash / app icon
 
-1. Drop your source image into `assets/` (e.g. `assets/sia.jpg`)
+1. Ensure source image is in `assets/` (e.g. `assets/my-icon.png`)
 2. Edit `scripts/generate_splash_icon.py` and update `SRC` to point at your image
-3. Adjust the `top` crop percentage if needed to hide/show different parts of the image
+3. Adjust crop settings if needed
 4. Run:
 
 ```bash

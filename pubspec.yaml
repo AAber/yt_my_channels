@@ -70,6 +70,7 @@ flutter:
     - assets/my-icon.png
     - assets/icon/sia.jpeg
     - assets/icon/sia.png
+    - assets/icon/icon.png
     - assets/icon/taylor.png
     - assets/icon/ed.png
     - assets/icon/adele.png
@@ -84,7 +85,7 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path_android: "assets/icon/app_icon.png"
+  image_path_android: "assets/icon/my_icon.png"
   image_path_ios: "assets/my-icon.png"
   min_sdk_android: 21
   adaptive_icon_background: "#000000"

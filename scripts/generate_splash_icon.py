@@ -2,8 +2,7 @@
 """
 generate_splash_icon.py
 ------------------------
-Processes assets/sia.jpg into all required splash and app icon sizes.
-Crops from 18% down to avoid showing the face at the top.
+Processes assets/my-icon.png into all required splash and app icon sizes.
 
 Usage:
     python3 scripts/generate_splash_icon.py
@@ -12,7 +11,7 @@ Usage:
 from PIL import Image
 import os
 
-SRC = os.path.join(os.path.dirname(__file__), "..", "assets", "sia.jpg")
+SRC = os.path.join(os.path.dirname(__file__), "..", "assets", "my-icon.png")
 ICON_DIR = os.path.join(os.path.dirname(__file__), "..", "assets", "icon")
 ASSETS_DIR = os.path.join(os.path.dirname(__file__), "..", "assets")
 
@@ -22,15 +21,11 @@ def process():
     w, h = img.size
     print(f"Original: {w}x{h}")
 
-    # Crop top 18% to hide face, keep wig/body
-    top = int(h * 0.18)
-    crop = img.crop((0, top, w, h))
-    cw, ch = crop.size
-
-    # Square-crop centered horizontally
-    side = min(cw, ch)
-    left = (cw - side) // 2
-    square = crop.crop((left, 0, left + side, side))
+    # Square-crop centered
+    side = min(w, h)
+    left = (w - side) // 2
+    top = (h - side) // 2
+    square = img.crop((left, top, left + side, top + side))
     print(f"Square crop: {square.size}")
 
     # app_icon.png (1024x1024)
